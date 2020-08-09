@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Sql.Linq2Db", "Akka.Persistence.Sql.Linq2Db\Akka.Persistence.Sql.Linq2Db.csproj", "{BA9870A6-4ECE-411F-A02B-636F3F1DEA95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Sql.Linq2Db.Tests", "Akka.Persistence.Sql.Linq2Db.Tests\Akka.Persistence.Sql.Linq2Db.Tests.csproj", "{6971694E-618D-435D-AF34-9276B02926F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{84157306-59B5-4CEC-BAE3-74B9A56DDA30}"
+ProjectSection(SolutionItems) = preProject
+	..\Readme.MD = ..\Readme.MD
+EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA9870A6-4ECE-411F-A02B-636F3F1DEA95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA9870A6-4ECE-411F-A02B-636F3F1DEA95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA9870A6-4ECE-411F-A02B-636F3F1DEA95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA9870A6-4ECE-411F-A02B-636F3F1DEA95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6971694E-618D-435D-AF34-9276B02926F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6971694E-618D-435D-AF34-9276B02926F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6971694E-618D-435D-AF34-9276B02926F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6971694E-618D-435D-AF34-9276B02926F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
