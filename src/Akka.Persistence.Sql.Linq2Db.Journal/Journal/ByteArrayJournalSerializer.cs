@@ -52,7 +52,8 @@ namespace Akka.Persistence.Sql.Linq2Db
                     message = binary,
                     persistenceId = persistentRepr.PersistenceId,
                     tags = tTags.Any()?  tTags.Aggregate((tl, tr) => tl + _separator + tr) : "",
-                    Identifier = serializer.Identifier, sequenceNumber = persistentRepr.SequenceNr
+                    Identifier = serializer.Identifier,
+                    sequenceNumber = persistentRepr.SequenceNr
                 };
             });
         }
@@ -79,7 +80,7 @@ namespace Akka.Persistence.Sql.Linq2Db
                         var serializerId = t.Identifier.Value;
                         // TODO: hack. Replace when https://github.com/akkadotnet/akka.net/issues/3811
                         deserialized = _serializer.Deserialize(t.message,
-                            serializerId, t.manifest);
+                            serializerId,t.manifest);
                     }
 
                     return (

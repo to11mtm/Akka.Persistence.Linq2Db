@@ -41,10 +41,13 @@ namespace Akka.Persistence.Sql.Linq2Db
 
     public class AkkaPersistenceDataConnectionFactory
     {
+        private string providerName;
+        private string connString;
+        private MappingSchema mappingSchema;
         public AkkaPersistenceDataConnectionFactory(JournalConfig config)
         {
-            var providerName = config.ProviderName;
-            var connString = config.ConnectionString;
+            providerName = config.ProviderName;
+            connString = config.ConnectionString;
             var fmb = new MappingSchema(MappingSchema.Default)
                 .GetFluentMappingBuilder();
             fmb.Entity<JournalRow>()
@@ -53,24 +56,26 @@ namespace Akka.Persistence.Sql.Linq2Db
                 .Member(r => r.deleted).HasColumnName(config
                     .TableConfiguration.ColumnNames.Deleted)
                 .Member(r => r.manifest).HasColumnName(config
-                    .TableConfiguration.ColumnNames.Manifest)
+                    .TableConfiguration.ColumnNames.Manifest).HasLength(500)
                 .Member(r => r.message).HasColumnName(config
                     .TableConfiguration.ColumnNames.Message)
                 .Member(r => r.ordering).HasColumnName(config
                     .TableConfiguration.ColumnNames.Ordering)
-                .Member(r => r.tags)
+                .Member(r => r.tags).HasLength(100)
                 .HasColumnName(config.TableConfiguration.ColumnNames.Tags)
                 .Member(r => r.Identifier).HasColumnName(config
                     .TableConfiguration.ColumnNames.Identitifer)
                 .Member(r => r.persistenceId).HasColumnName(config
-                    .TableConfiguration.ColumnNames.PersistenceId)
+                    .TableConfiguration.ColumnNames.PersistenceId).HasLength(255)
                 .Member(r => r.sequenceNumber).HasColumnName(config
                     .TableConfiguration.ColumnNames.SequenceNumber);
-            GetConnection = () =>
-                new DataConnection(providerName, connString, fmb.MappingSchema);
+            mappingSchema = fmb.MappingSchema;
 
         }
 
-        public Func<DataConnection> GetConnection { get; set; }
+        public DataConnection GetConnection()
+        {
+            return new DataConnection(providerName,connString,mappingSchema);
+        }
     }
 }

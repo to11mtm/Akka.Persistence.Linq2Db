@@ -8,7 +8,7 @@ namespace Akka.Persistence.Sql.Linq2Db
 {
     public abstract class PersistentReprSerializer<T>
     {
-        public IEnumerable<Try<IEnumerable<T>>> Serialize(
+        public List<Try<List<T>>> Serialize(
             IEnumerable<AtomicWrite> messages)
         {
             return messages.Select(aw =>
@@ -16,8 +16,8 @@ namespace Akka.Persistence.Sql.Linq2Db
                 var serialized =
                     (aw.Payload as IEnumerable<IPersistentRepresentation>)
                     .Select(Serialize);
-                return TrySeq.Sequence(serialized);
-            });
+                return TrySeq.SequenceList(serialized);
+            }).ToList();
         }
 
 

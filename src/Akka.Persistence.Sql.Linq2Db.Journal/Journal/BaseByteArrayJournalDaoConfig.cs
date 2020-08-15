@@ -1,4 +1,5 @@
 ﻿using Akka.Configuration;
+using LinqToDB.Data;
 
 namespace Akka.Persistence.Sql.Linq2Db
 {
@@ -6,10 +7,11 @@ namespace Akka.Persistence.Sql.Linq2Db
     {
         public BaseByteArrayJournalDaoConfig(Config config)
         {
-            BufferSize = config.GetInt("buffer-size", 1000);
-            BatchSize = config.GetInt("batch-size", 400);
-            ReplayBatchSize = config.GetInt("replay-batch-size", 400);
-            Parallelism = config.GetInt("parallelism", 8);
+            
+            BufferSize = config.GetInt("buffer-size", 30000);
+            BatchSize = config.GetInt("batch-size", 500);
+            ReplayBatchSize = config.GetInt("replay-batch-size", 1000);
+            Parallelism = config.GetInt("parallelism", 4);
             LogicalDelete = config.GetBoolean("logical-delete", true);
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,61 +14,98 @@ using LinqToDB.Data;
 
 namespace Akka.Persistence.Sql.Linq2Db
 {
+    public class WriteQueueEntry
+    {
+        public WriteQueueEntry(TaskCompletionSource<NotUsed> tcs,
+            List<JournalRow> rows)
+        {
+            TCS = tcs;
+            Rows = rows;
+        }
+
+        public List<JournalRow> Rows { get; }
+
+        public TaskCompletionSource<NotUsed> TCS { get; }
+    }
+
+    public class WriteQueueSet
+    {
+        public WriteQueueSet(List<TaskCompletionSource<NotUsed>> tcs,
+            List<JournalRow> rows)
+        {
+            TCS = tcs;
+            Rows = rows;
+        }
+
+        public List<JournalRow> Rows { get; }
+
+        public List<TaskCompletionSource<NotUsed>> TCS { get; }
+    }
     public abstract class BaseByteArrayJournalDao : BaseJournalDaoWithReadMessages,
         IJournalDaoWithUpdates
     {
-        protected BaseByteArrayJournalDao(IAdvancedScheduler sched, IMaterializer materializerr,
+        protected BaseByteArrayJournalDao(IAdvancedScheduler sched,
+            IMaterializer materializerr,
             AkkaPersistenceDataConnectionFactory connectionFactory,
-            JournalConfig config, ByteArrayJournalSerializer serializer):base(sched,materializerr)
+            JournalConfig config, ByteArrayJournalSerializer serializer) : base(
+            sched, materializerr, connectionFactory)
         {
-            _connectionFactory = connectionFactory;
             _journalConfig = config;
             Serializer = serializer;
             WriteQueue = Source
-                .Queue<(TaskCompletionSource<NotUsed>, List<JournalRow>)
+                .Queue<WriteQueueEntry
                 >(_journalConfig.DaoConfig.BufferSize,
-                    OverflowStrategy.DropNew).BatchWeighted(_journalConfig.DaoConfig.BatchSize,
-                    cf => cf.Item2.Count, r => (new[] {r.Item1}, r.Item2),
+                    OverflowStrategy.DropNew).BatchWeighted(
+                    _journalConfig.DaoConfig.BatchSize,
+                    cf => cf.Rows.Count,
+                    r => new WriteQueueSet (
+                        new List<TaskCompletionSource<NotUsed>>(new[]
+                            {r.TCS}), r.Rows),
                     ((oldRows, newRows) =>
                     {
-                        return (oldRows.Item1.Append(newRows.Item1).ToArray(),
-                            oldRows.Item2.Concat(newRows.Item2).ToList());
+                        oldRows.TCS.Add(newRows.TCS);
+                        oldRows.Rows.AddRange(newRows.Rows);
+                        return oldRows; //.Concat(newRows.Item2).ToList());
 
-                    })).SelectAsync(_journalConfig.DaoConfig.Parallelism, async (promisesAndRows) =>
-                {
-                    try
+                    })).SelectAsync(_journalConfig.DaoConfig.Parallelism,
+                    async (promisesAndRows) =>
                     {
-                        await writeJournalRows(promisesAndRows.Item2);
-                        foreach (var taskCompletionSource in promisesAndRows
-                            .Item1)
+                        try
                         {
-                            taskCompletionSource.TrySetResult(NotUsed.Instance);
+                            await writeJournalRows(promisesAndRows.Rows);
+                            foreach (var taskCompletionSource in promisesAndRows
+                                .TCS)
+                            {
+                                taskCompletionSource.TrySetResult(
+                                    NotUsed.Instance);
+                            }
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        foreach (var taskCompletionSource in promisesAndRows
-                            .Item1)
+                        catch (Exception e)
                         {
-                            taskCompletionSource.TrySetException(e);
+                            foreach (var taskCompletionSource in promisesAndRows
+                                .TCS)
+                            {
+                                taskCompletionSource.TrySetException(e);
+                            }
                         }
-                    }
 
-                    return promisesAndRows;
-                }).ToMaterialized(
-                    Sink.Ignore<(TaskCompletionSource<NotUsed>[],
-                        List<JournalRow>)>(),Keep.Left).Run(mat);
+                        return promisesAndRows;
+                    }).ToMaterialized(
+                    Sink.Ignore<WriteQueueSet>(), Keep.Left).Run(mat);
         }
+
         protected JournalConfig _journalConfig;
         protected FlowPersistentReprSerializer<JournalRow> Serializer;
 
-        private async Task<NotUsed> queueWriteJournalRows(IEnumerable<JournalRow> xs)
+        private async Task<NotUsed> queueWriteJournalRows(List<JournalRow> xs)
         {
-            TaskCompletionSource<NotUsed> promise = new TaskCompletionSource<NotUsed>();
-            await WriteQueue.OfferAsync((promise, xs.ToList())).ContinueWith(
-                 (Task<IQueueOfferResult> task) =>
+            TaskCompletionSource<NotUsed> promise =
+                new TaskCompletionSource<NotUsed>(TaskCreationOptions.RunContinuationsAsynchronously);
+            WriteQueue.OfferAsync(new WriteQueueEntry(promise, xs))
+                .ContinueWith(
+                 async (Task<IQueueOfferResult> task) =>
             {
-                var result = task.Result;
+                var result = await task;
                 if (result is QueueOfferResult.Enqueued)
                 {
                     
@@ -100,20 +138,85 @@ namespace Akka.Persistence.Sql.Linq2Db
                             new BulkCopyOptions()
                                 {BulkCopyType = BulkCopyType.Default}, xs);
                 }
-                else if (xs.Count>0) 
+                else if (xs.Count>0)
                 {
-                    db.Insert(xs.FirstOrDefault());
+                    await db.InsertAsync(xs.FirstOrDefault());
                 }
             }
             // Write atomically without auto-commit
         }
 
-        public Task<IEnumerable<Try<NotUsed>>> AsyncWriteMessages(
+        public Task<IImmutableList<Exception>> AsyncWriteMessagesUnwrapped(
             IEnumerable<AtomicWrite> messages)
         {
             var serializedTries = Serializer.Serialize(messages);
             
             var taskList = serializedTries.Select(async r =>
+            {
+                if (r.IsSuccess == false)
+                {
+                    return r.Failure.Value;
+                }
+                else
+                {
+                    try
+                    {
+                        await queueWriteJournalRows(r.Get());
+                        return (Exception)null;
+                    }
+                    catch (Exception e)
+                    {
+                        return e;
+                    }
+                }
+            }).ToArray();
+            var returnFactory =
+                Task<IImmutableList<Exception>>.Factory.ContinueWhenAll(
+                    taskList,
+                (Task<Exception>[] task) =>
+                {
+                    return task.Select(t => t.Result).ToImmutableList();
+                });
+            return returnFactory;
+        }
+/*
+    private static Seq resultWhenWriteComplete$1(final Seq serializedTries$1) {
+      return (Seq)(serializedTries$1.forall((x$8) -> {
+         return BoxesRunTime.boxToBoolean($anonfun$asyncWriteMessages$4(x$8));
+      }) ? scala.collection.immutable.Nil..MODULE$ : (Seq)serializedTries$1.map((x$9) -> {
+         return x$9.map((x$10) -> {
+            $anonfun$asyncWriteMessages$6(x$10);
+            return BoxedUnit.UNIT;
+         });
+      }, scala.collection.immutable.Seq..MODULE$.canBuildFrom()));
+   }
+ */
+        public async Task<IEnumerable<Try<NotUsed>>> AsyncWriteMessages(
+            IEnumerable<AtomicWrite> messages)
+        {
+            var serializedTries = Serializer.Serialize(messages);
+            var rows = serializedTries.SelectMany(serializedTry =>
+            {
+                if (serializedTry.IsSuccess)
+                {
+                    return serializedTry.Get();
+                }
+
+                return new List<JournalRow>(0);
+            }).ToList();
+            
+            return await queueWriteJournalRows(rows).ContinueWith(task =>
+                {
+                    return serializedTries.Select(r =>
+                        r.IsSuccess
+                            ? (task.IsFaulted ? new Try<NotUsed>(task.Exception) : new Try<NotUsed>(NotUsed.Instance))
+                            : new Try<NotUsed>(r.Failure.Value));
+                });
+            
+            
+           // var resultWhenWriteComplete = 
+             //   serializedTries.All(t=>t.IsSuccess)? null : 
+            /*var taskList = serializedTries.Select(async r =>
             {
                 if (r.IsSuccess == false)
                 {
@@ -132,12 +235,15 @@ namespace Akka.Persistence.Sql.Linq2Db
                     }
                 }
             }).ToArray();
-            var returnFactory = Task<IEnumerable<Try<NotUsed>>>.Factory.ContinueWhenAll(taskList,
-                (Task<Try<NotUsed>>[] task) =>
-                {
-                    return task.Select(t => t.Result);
-                });
-            return returnFactory;
+            
+            var returnFactory =
+                Task<IEnumerable<Try<NotUsed>>>.Factory.ContinueWhenAll(
+                    taskList,
+                    (Task<Try<NotUsed>>[] task) =>
+                    {
+                        return task.Select(t => t.Result);
+                    });
+            return returnFactory;*/
         }
 
         private Lazy<object> logWarnAboutLogicalDeletionDeprecation =
@@ -238,11 +344,10 @@ namespace Akka.Persistence.Sql.Linq2Db
                     fromSequenceNr).FirstOrDefaultAsync();
             }
         }
-
-        public override Source<Try<(IPersistentRepresentation, long)>, NotUsed> Messages(string persistenceId, long fromSequenceNr, long toSequenceNr,
+        public override Source<Try<Linq2DbWriteJournal.ReplayCompletion>, NotUsed> MessagesClass(DataConnection db, string persistenceId, long fromSequenceNr, long toSequenceNr,
             long max)
         {
-            using (var db = _connectionFactory.GetConnection())
+            
             {
                 IQueryable<JournalRow> query = db.GetTable<JournalRow>()
                     .TableName(_journalConfig.TableConfiguration.TableName)
@@ -259,7 +364,48 @@ namespace Akka.Persistence.Sql.Linq2Db
 
                 //return Source
                 //    .FromObservable(query.AsAsyncEnumerable().ToObservable())
+                
                 return Source.From(query.ToList())
+                    .Via(
+                        Serializer.deserializeFlow()).Select(sertry =>
+                    {
+                        if (sertry.IsSuccess)
+                        {
+                            return new
+                                Try<Linq2DbWriteJournal.ReplayCompletion>(
+                                    new Linq2DbWriteJournal.ReplayCompletion()
+                                    {
+                                        repr = sertry.Success.Value.Item1,
+                                        SequenceNr = sertry.Success.Value.Item3
+                                    }); 
+                        }
+                        else
+                        {
+                            return new Try<Linq2DbWriteJournal.ReplayCompletion>(
+                                sertry.Failure.Value);
+                        }
+                    });
+            }
+        }
+        public override Source<Try<(IPersistentRepresentation, long)>, NotUsed> Messages(DataConnection db, string persistenceId, long fromSequenceNr, long toSequenceNr,
+            long max)
+        {
+            
+            {
+                IQueryable<JournalRow> query = db.GetTable<JournalRow>()
+                    .Where(r =>
+                        r.persistenceId == persistenceId &&
+                        r.sequenceNumber >= fromSequenceNr &&
+                        r.sequenceNumber <= toSequenceNr)
+                    .OrderBy(r => r.sequenceNumber);
+                if (max <= int.MaxValue)
+                {
+                    query = query.Take((int) max);
+                }
+                
+                return Source
+                    .FromObservable(query.AsAsyncEnumerable().ToObservable())
+                //return Source.From(query)
                     .Via(
                         Serializer.deserializeFlow()).Select(sertry =>
                     {
@@ -278,7 +424,6 @@ namespace Akka.Persistence.Sql.Linq2Db
             }
         }
 
-        public ISourceQueueWithComplete<(TaskCompletionSource<NotUsed>, List<JournalRow>)> WriteQueue;
-        protected readonly AkkaPersistenceDataConnectionFactory _connectionFactory;
+        public ISourceQueueWithComplete<WriteQueueEntry> WriteQueue;
     }
 }

@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
-    public class UnitTest1 : Akka.Persistence.TCK.Journal.JournalSpec
+    public class SQLiteJournalSpec : Akka.Persistence.TCK.Journal.JournalSpec
     {
         private static AtomicCounter counter = new AtomicCounter(0);
         //private static string  connString = "FullUri=file:memdb"+counter.IncrementAndGet() +"?mode=memory&cache=shared";
@@ -17,7 +17,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
         private static SqliteConnection helSqLiteConnection =
             new SqliteConnection(connString);
 
-        public UnitTest1(ITestOutputHelper outputHelper) : base(SQLiteJournalSpecConfig.Create(connString),
+        public SQLiteJournalSpec(ITestOutputHelper outputHelper) : base(SQLiteJournalSpecConfig.Create(connString),
             "linq2dbJournalSpec",
             output: outputHelper)
         {

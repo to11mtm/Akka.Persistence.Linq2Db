@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\github\akka.persistence.linq2db\src\Akka.Persistence.Sql.Linq2Db" t="IncludeRecursive">
+      <e p="Akka.Persistence.Sql.Linq2Db.csproj" t="IncludeRecursive" />
+      <e p="bin" t="ExcludeRecursive" />
+      <e p="ConfigKeys.cs" t="Include" />
+      <e p="FlowControl.cs" t="Include" />
+      <e p="Linq2DbConfiguration.cs" t="Include" />
+      <e p="obj" t="ExcludeRecursive">
+        <e p="Debug" t="Include">
+          <e p="netstandard2.0" t="Include">
+            <e p="Akka.Persistence.Sql.Linq2Db.AssemblyInfo.cs" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="Serialization" t="Include">
+        <e p="FlowPersistentReprSerializer.cs" t="Include" />
+        <e p="PersistentReprSerializer.cs" t="Include" />
+      </e>
+      <e p="Snapshot" t="Include" />
+      <e p="SnapshotConfig.cs" t="Include" />
+      <e p="SnapshotPluginConfig.cs" t="Include" />
+      <e p="SnapshotTableColumnNames.cs" t="Include" />
+      <e p="SnapshotTableConfiguration.cs" t="Include" />
+      <e p="TrySeq.cs" t="Include" />
+    </e>
+    <e p="C:\Users\laing\AppData\Local\JetBrains\Rider2020.1\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\laing\AppData\Local\JetBrains\Rider2020.1\resharper-host\Local\Transient\ReSharperHost\v201\SolutionCaches\_.19.00" t="ExcludeRecursive" />
+  </component>
+</project>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Akka.Persistence.Journal;
 using Akka.Streams;
 using Akka.Streams.Dsl;
@@ -21,17 +22,21 @@ namespace Akka.Persistence.Sql.Linq2Db
 
         public Linq2DbWriteJournal(Config config)
         {
-            _mat = ActorMaterializer.Create(Context);
+            
+            _mat = ActorMaterializer.Create(Context, ActorMaterializerSettings.Create(Context.System)
+                .WithDispatcher("akka.stream.default-blocking-io-dispatcher")
+            );
             _journalConfig = new JournalConfig(config);
             try
             {
+                
                 _journal = new ByteArrayJournalDao( Context.System.Scheduler.Advanced ,_mat,
                     new AkkaPersistenceDataConnectionFactory(_journalConfig),
                     _journalConfig, Context.System.Serialization);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Context.GetLogger().Error(e, "Error Initializing Journal!");
                 throw;
             }
             
@@ -43,8 +48,8 @@ namespace Akka.Persistence.Sql.Linq2Db
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
-                    throw;
+                    Context.GetLogger().Warning(e,
+                        "Unable to Initialize Persistence Journal Table!");
                 }
                 
             }
@@ -70,17 +75,22 @@ namespace Akka.Persistence.Sql.Linq2Db
             base.AroundPreRestart(cause, message);
         }
 
-        public override Task ReplayMessagesAsync(IActorContext context, string persistenceId,
+        public class ReplayCompletion
+        {
+            public IPersistentRepresentation repr { get; set; }
+            public long SequenceNr { get; set; }
+        }
+        public override async Task ReplayMessagesAsync(IActorContext context, string persistenceId,
             long fromSequenceNr, long toSequenceNr, long max, Action<IPersistentRepresentation> recoveryCallback)
         {
 
-            return _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
-                    toSequenceNr, _journalConfig.DaoConfig.BatchSize,
+            await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
+                    toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
                     Option<(TimeSpan, SchedulerBase)>.None)
                 .Take(max).SelectAsync(1,
                     t => t.IsSuccess
                         ? Task.FromResult(t.Success.Value)
-                        : Task.FromException<(IPersistentRepresentation, long)>(
+                        : Task.FromException<(IPersistentRepresentation,long)>(
                             t.Failure.Value))
                 .RunForeach(r =>
                 {
@@ -96,37 +106,22 @@ namespace Akka.Persistence.Sql.Linq2Db
                 var hsn =await _journal.HighestSequenceNr(persistenceId,
                     fromSequenceNr);
                 return hsn;
-                /*return await writeInProgress[persistenceId].ContinueWith(task =>
-                {
-                    return  _journal.HighestSequenceNr(persistenceId, fromSequenceNr);
-                        /*.ContinueWith(hsn =>
-                        {
-                            if (hsn.IsFaulted)
-                            {
-                                tcs.SetException(hsn.Exception);
-                            }
-                            else
-                            {
-                                tcs.SetResult(hsn.Result);    
-                            }
-                        });
-                });*/
             }
             return await _journal.HighestSequenceNr(persistenceId, fromSequenceNr);
         }
         private Dictionary<string,Task> writeInProgress = new Dictionary<string, Task>();
-        protected override async Task<IImmutableList<Exception>> WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
+        protected override Task<IImmutableList<Exception>> WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
         {
             //TODO: CurrentTimeMillis;
             var future =  _journal.AsyncWriteMessages(messages);
             var persistenceId = messages.Head().PersistenceId;
             writeInProgress.AddOrSet(persistenceId,future);
-            var ourTcs = new TaskCompletionSource<ImmutableList<Exception>>();
+            var self = Self;
             //Task<IImmutableList<Exception>>.Factory.
             future.ContinueWith(( p)=>
-                Context.Self.Tell(new WriteFinished(persistenceId, future)));
+                self.Tell(new WriteFinished(persistenceId, future)));
             
-            return await future.ContinueWith(task =>
+            return  future.ContinueWith(task =>
             {
                 var finalResult =
                     task.Result

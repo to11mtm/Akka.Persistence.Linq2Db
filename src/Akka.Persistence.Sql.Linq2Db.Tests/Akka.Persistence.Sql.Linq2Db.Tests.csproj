@@ -6,9 +6,18 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DebugType>full</DebugType>
+    </PropertyGroup>
+
     <ItemGroup>
+        <PackageReference Include="Akka.Persistence.SqlServer" Version="1.4.1" />
         <PackageReference Include="Akka.Persistence.TCK" Version="1.4.9" />
         <PackageReference Include="Akka.Persistence.TestKit" Version="1.4.9" />
+        <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.9" />
+        <PackageReference Include="Docker.DotNet" Version="3.125.4" />
+        <PackageReference Include="Hyperion" Version="0.9.16" />
+        <PackageReference Include="JetBrains.dotMemoryUnit" Version="3.1.20200127.214830" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.6" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
@@ -19,6 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db.Journal\Akka.Persistence.Sql.Linq2Db.Journal.csproj" />
       <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db\Akka.Persistence.Sql.Linq2Db.csproj" />
     </ItemGroup>
 

@@ -1,12 +1,22 @@
 # Akka.Persistence.Linq2Db
 
-A Cross-SQL-DBA Akka.Persistence plugin
+A Cross-SQL-DBA Akka.Persistence plugin with broad database compatibility thanks to Linq2Db.
+
+This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Scala to C#. 
+
 
 #### This is still a WORK IN PROGRESS
 
  **Pull Requests are Welcome** but please note this is still considered 'work in progress' and only used if one understands the risks. While the TCK Specs pass you should still test in a 'safe' non-production environment carefully before deciding to fully deploy.
  
  Additionally, at this time there is no migration or backward compatibility with past Akka.Persistence SQL providers. The columns themselves should be a good 'fit' with the existing designs for SQLite/SQLServer but full compatibility should not be considered a guarantee (particularly in SQLite due to possible differences in how data is stored). 
+
+## Advantages over `Akka.Contrib.Persistence.Sql.Common` Implementations:
+
+ - Akka.Streams used aggressively to lower blocking overhead
+ 
+ - Linq2Db usage for easier swapping of backend DBs.
+ 
 
 ## Currently Implemented:
 
@@ -19,6 +29,7 @@ A Cross-SQL-DBA Akka.Persistence plugin
 ## Incomplete:
 
 - SnapshotStore
+- Journal Queries (i.e. Tag queries. Tags are properly persisted at this time.)
  
 ## Configuration Samples:
 
