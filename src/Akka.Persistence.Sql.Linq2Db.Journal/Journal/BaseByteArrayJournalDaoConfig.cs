@@ -9,9 +9,9 @@ namespace Akka.Persistence.Sql.Linq2Db
         {
             
             BufferSize = config.GetInt("buffer-size", 30000);
-            BatchSize = config.GetInt("batch-size", 500);
-            ReplayBatchSize = config.GetInt("replay-batch-size", 1000);
-            Parallelism = config.GetInt("parallelism", 4);
+            BatchSize = config.GetInt("batch-size", 2000);
+            ReplayBatchSize = config.GetInt("replay-batch-size", 10000);
+            Parallelism = config.GetInt("parallelism", 8);
             LogicalDelete = config.GetBoolean("logical-delete", true);
         }
 

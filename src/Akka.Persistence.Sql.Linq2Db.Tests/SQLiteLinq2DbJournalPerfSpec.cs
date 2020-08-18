@@ -1,4 +1,5 @@
-﻿using Akka.Persistence.TestKit.Performance;
+﻿using System;
+using Akka.Persistence.TestKit.Performance;
 using Akka.Util.Internal;
 using Microsoft.Data.Sqlite;
 using Xunit.Abstractions;
@@ -14,16 +15,17 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
             "Filename=file:memdb-journal-" + counter.IncrementAndGet() +
             ".db;Mode=Memory;Cache=Shared";
 
-        private static SqliteConnection helSqLiteConnection =
-            new SqliteConnection(connString);
-        public SQLiteLinq2DbJournalPerfSpec(ITestOutputHelper output)
-            : base(SQLiteJournalSpecConfig.Create(connString), "SqliteJournalSpec", output)
-        {
-            try
+        private static Lazy<SqliteConnection> helSqLiteConnection = new Lazy<SqliteConnection>(
+            () =>
             {
-                helSqLiteConnection.Open();
-            }
-            catch{}
+                var c = new SqliteConnection(connString);
+                c.Open();
+                return c;
+            });
+            
+        public SQLiteLinq2DbJournalPerfSpec(ITestOutputHelper output)
+            : base(SQLiteJournalSpecConfig.Create(helSqLiteConnection.Value.ConnectionString), "SqliteJournalSpec", output)
+        {
         }
         
     }

@@ -223,24 +223,17 @@ namespace Akka.Persistence.Sql.Linq2Db
                                     (nextFrom, nextControl), msg));
                         }
 
-                        if (opt.Item2 is FlowControl.Stop)
+                        switch (opt.Item2)
                         {
-                            return Option<((long, FlowControl), IEnumerable<Try<(IPersistentRepresentation, long)>>)>.None;
-                        }
-                        else if (opt.Item2 is FlowControl.Continue)
-                        {
-                            return await RetrieveNextBatch();
-                        }
-                        else if (opt.Item2 is FlowControl.ContinueDelayed)
-                        {
-                            if (refreshInterval.HasValue)
-                            {
+                            case FlowControl.Stop _:
+                                return Option<((long, FlowControl), IEnumerable<Try<(IPersistentRepresentation, long)>>)>.None;
+                            case FlowControl.Continue _:
+                                return await RetrieveNextBatch();
+                            case FlowControl.ContinueDelayed _ when refreshInterval.HasValue:
                                 return await FutureTimeoutSupport.After(refreshInterval.Value.Item1,refreshInterval.Value.Item2, RetrieveNextBatch);
-                                
-                            }
+                            default:
+                                throw null;
                         }
-
-                        throw null;
                     });
 
             return src.SelectMany(r => r);

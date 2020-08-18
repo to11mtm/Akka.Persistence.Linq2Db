@@ -61,13 +61,13 @@ namespace Akka.Persistence.Sql.Linq2Db
                     r => new WriteQueueSet (
                         new List<TaskCompletionSource<NotUsed>>(new[]
                             {r.TCS}), r.Rows),
-                    ((oldRows, newRows) =>
+                    (oldRows, newRows) =>
                     {
                         oldRows.TCS.Add(newRows.TCS);
                         oldRows.Rows.AddRange(newRows.Rows);
                         return oldRows; //.Concat(newRows.Item2).ToList());
 
-                    })).SelectAsync(_journalConfig.DaoConfig.Parallelism,
+                    }).SelectAsync(_journalConfig.DaoConfig.Parallelism,
                     async (promisesAndRows) =>
                     {
                         try
@@ -97,7 +97,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         protected JournalConfig _journalConfig;
         protected FlowPersistentReprSerializer<JournalRow> Serializer;
 
-        private async Task<NotUsed> queueWriteJournalRows(List<JournalRow> xs)
+        private  Task<NotUsed> queueWriteJournalRows(List<JournalRow> xs)
         {
             TaskCompletionSource<NotUsed> promise =
                 new TaskCompletionSource<NotUsed>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -112,19 +112,19 @@ namespace Akka.Persistence.Sql.Linq2Db
                 }
                 else if (result is QueueOfferResult.Failure f)
                 {
-                    promise.SetException(new Exception("Failed to write journal row batch",f.Cause));
+                    promise.TrySetException(new Exception("Failed to write journal row batch",f.Cause));
                 }
                 else if (result is QueueOfferResult.Dropped)
                 {
-                    promise.SetException(new Exception(
+                    promise.TrySetException(new Exception(
                         $"Failed to enqueue journal row batch write, the queue buffer was full ({_journalConfig.DaoConfig.BufferSize} elements)"));
                 }
                 else if (result is QueueOfferResult.QueueClosed)
                 {
-                    promise.SetException(new Exception("Failed to enqueue journal row batch write, the queue was closed."));
+                    promise.TrySetException(new Exception("Failed to enqueue journal row batch write, the queue was closed."));
                 }
             });
-            return await promise.Task;
+            return promise.Task;
         }
         private async Task writeJournalRows(List<JournalRow> xs)
         {
@@ -191,7 +191,7 @@ namespace Akka.Persistence.Sql.Linq2Db
       }, scala.collection.immutable.Seq..MODULE$.canBuildFrom()));
    }
  */
-        public async Task<IEnumerable<Try<NotUsed>>> AsyncWriteMessages(
+        public Task<IImmutableList<Exception>> AsyncWriteMessagesFuture(
             IEnumerable<AtomicWrite> messages)
         {
             var serializedTries = Serializer.Serialize(messages);
@@ -205,13 +205,101 @@ namespace Akka.Persistence.Sql.Linq2Db
                 return new List<JournalRow>(0);
             }).ToList();
             
-            return await queueWriteJournalRows(rows).ContinueWith(task =>
+            return queueWriteJournalRows(rows).ContinueWith(task =>
+            {
+                return serializedTries.Select(r =>
+                    r.IsSuccess
+                        ? (task.IsFaulted
+                            ? TryUnwrapException(task.Exception)
+                            : null)
+                        : null).ToImmutableList() as IImmutableList<Exception>;
+            });
+        }
+        public async Task<IImmutableList<Exception>> AsyncWriteMessagesDirect(
+            IEnumerable<AtomicWrite> messages)
+        {
+            var serializedTries = Serializer.Serialize(messages);
+            var rows = serializedTries.SelectMany(serializedTry =>
+            {
+                if (serializedTry.IsSuccess)
                 {
-                    return serializedTries.Select(r =>
-                        r.IsSuccess
-                            ? (task.IsFaulted ? new Try<NotUsed>(task.Exception) : new Try<NotUsed>(NotUsed.Instance))
-                            : new Try<NotUsed>(r.Failure.Value));
-                });
+                    return serializedTry.Get();
+                }
+
+                return new List<JournalRow>(0);
+            }).ToList();
+            
+            try
+            {
+                await queueWriteJournalRows(rows);
+                return serializedTries
+                    .Select(r =>
+                        r.IsSuccess == false
+                            ? r.Failure.Value
+                            : null)
+                    .ToImmutableList();
+            }
+            catch (Exception e)
+            {
+                return serializedTries.Select(r =>e).ToImmutableList();
+            }
+            //return await queueWriteJournalRows(rows).ContinueWith(task =>
+            //{
+            //    return serializedTries.Select(r =>
+            //        r.IsSuccess
+            //            ? (task.IsFaulted
+            //                ? TryUnwrapException(task.Exception)
+            //                : null)
+            //            : null).ToImmutableList();
+            //});
+        }
+        protected static Exception TryUnwrapException(Exception e)
+        {
+            var aggregateException = e as AggregateException;
+            if (aggregateException != null)
+            {
+                aggregateException = aggregateException.Flatten();
+                if (aggregateException.InnerExceptions.Count == 1)
+                    return aggregateException.InnerExceptions[0];
+            }
+            return e;
+        }
+
+        public async Task<IEnumerable<Try<NotUsed>>> AsyncWriteMessages(
+            IEnumerable<AtomicWrite> messages)
+        {
+            var serializedTries = Serializer.Serialize(messages);
+            var rows = serializedTries.SelectMany(serializedTry =>
+            {
+                if (serializedTry.IsSuccess)
+                {
+                    return serializedTry.Get();
+                }
+
+                return new List<JournalRow>(0);
+            }).ToList();
+
+            try
+            {
+                await queueWriteJournalRows(rows);
+                return serializedTries
+                    .Select(r =>
+                        r.IsSuccess == false
+                            ? new Try<NotUsed>(r.Failure.Value)
+                            : new Try<NotUsed>(NotUsed.Instance))
+                    .ToImmutableList();
+            }
+            catch (Exception e)
+            {
+                return serializedTries.Select(r => new Try<NotUsed>(e));
+            }
+            /*.ContinueWith(task =>
+               {
+                   return serializedTries.Select(r =>
+                       r.IsSuccess
+                           ? (task.IsFaulted ? new Try<NotUsed>(task.Exception) : new Try<NotUsed>(NotUsed.Instance))
+                           : new Try<NotUsed>(r.Failure.Value));
+               });*/
             
             
            // var resultWhenWriteComplete = 
@@ -403,9 +491,9 @@ namespace Akka.Persistence.Sql.Linq2Db
                     query = query.Take((int) max);
                 }
                 
-                return Source
-                    .FromObservable(query.AsAsyncEnumerable().ToObservable())
-                //return Source.From(query)
+                //return Source
+                //    .FromObservable(query.AsAsyncEnumerable().ToObservable())
+                return Source.From(query)
                     .Via(
                         Serializer.deserializeFlow()).Select(sertry =>
                     {
