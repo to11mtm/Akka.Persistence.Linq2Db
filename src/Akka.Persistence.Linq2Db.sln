@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Sql.Linq2D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Sql.Linq2Db.Journal", "Akka.Persistence.Sql.Linq2Db.Journal\Akka.Persistence.Sql.Linq2Db.Journal.csproj", "{C127EBFD-F673-4AA9-8D0B-CA71EB8870AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Linq2Db.BenchmarkTests", "Akka.Persistence.Linq2Db.BenchmarkTests\Akka.Persistence.Linq2Db.BenchmarkTests.csproj", "{9B4586EC-5B98-407F-AAC6-E28393F59D84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{C127EBFD-F673-4AA9-8D0B-CA71EB8870AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C127EBFD-F673-4AA9-8D0B-CA71EB8870AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C127EBFD-F673-4AA9-8D0B-CA71EB8870AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B4586EC-5B98-407F-AAC6-E28393F59D84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B4586EC-5B98-407F-AAC6-E28393F59D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B4586EC-5B98-407F-AAC6-E28393F59D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B4586EC-5B98-407F-AAC6-E28393F59D84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

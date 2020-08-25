@@ -1,4 +1,5 @@
 ﻿using System;
+using Akka.Persistence.Sql.Linq2Db.Tests.Performance;
 using Akka.Persistence.TestKit.Performance;
 using Akka.Util.Internal;
 using Microsoft.Data.Sqlite;
@@ -6,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
-    public class SQLiteLinq2DbJournalPerfSpec : JournalPerfSpec
+    public class SQLiteLinq2DbJournalPerfSpec : L2dbJournalPerfSpec
     {
         private static AtomicCounter counter = new AtomicCounter(0);
         
@@ -20,6 +21,12 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
             {
                 var c = new SqliteConnection(connString);
                 c.Open();
+                var walCommand = c.CreateCommand();
+                walCommand.CommandText =
+                    @"
+    PRAGMA journal_mode = 'wal'
+";
+                walCommand.ExecuteNonQuery();
                 return c;
             });
             

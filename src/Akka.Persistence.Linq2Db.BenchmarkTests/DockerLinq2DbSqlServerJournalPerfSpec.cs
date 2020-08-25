@@ -39,7 +39,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
         }
         public DockerLinq2DbSqlServerJournalPerfSpec(ITestOutputHelper output,
             SqlServerFixture fixture) : base(InitConfig(fixture),
-            "sqlserverperf", output,40, 500)
+            "sqlserverperf", output,40, 100)
         {
             
             var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(Create(DockerDbUtils.ConnectionString).GetConfig("akka.persistence.journal.testspec")));

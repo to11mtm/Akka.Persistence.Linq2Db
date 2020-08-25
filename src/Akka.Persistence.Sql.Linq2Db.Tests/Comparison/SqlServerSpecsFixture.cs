@@ -1,9 +1,0 @@
-﻿using Xunit;
-
-namespace Akka.Persistence.Sql.Linq2Db.Tests
-{
-    [CollectionDefinition("SqlServerSpec")]
-    public sealed class SqlServerSpecsFixture : ICollectionFixture<SqlServerFixture>
-    {
-    }
-}

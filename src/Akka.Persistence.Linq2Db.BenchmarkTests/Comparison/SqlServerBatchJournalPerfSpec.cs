@@ -1,5 +1,7 @@
-﻿using Akka.Configuration;
+﻿using System;
+using Akka.Configuration;
 using Akka.Persistence.Sql.Linq2Db.Tests.Performance;
+using Akka.Util;
 using JetBrains.dotMemoryUnit;
 using LinqToDB;
 using LinqToDB.Data;
@@ -10,33 +12,31 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
     public class SqlServerBatchJournalPerfSpec : L2dbJournalPerfSpec
     {
-        public SqlServerBatchJournalPerfSpec(ITestOutputHelper output) : base(InitConfig(),"sqlserverperfspec", output)
+        public SqlServerBatchJournalPerfSpec(ITestOutputHelper output) : base(InitConfig(),"sqlserverperfspec", output, eventsCount:10000)
         {
             DotMemoryUnitTestOutput.SetOutputMethod(
                 message => output.WriteLine(message));
             using (var conn =
-                new DataConnection(ProviderName.SqlServer2008, connString.Replace("\\\\","\\")))
+                new DataConnection(ProviderName.SqlServer2008, ConnectionString.Instance.Replace("\\\\","\\")))
             {
-                conn.GetTable<JournalRow>().TableName("EventJournal_batch").Delete();
+                try
+                {
+                    conn.GetTable<JournalRow>().TableName("EventJournal_batch").Delete();
+                }
+                catch (Exception e)
+                {
+                }
+                
                 //Akka.Persistence.SqlServer.Journal.BatchingSqlServerJournal
             }
         }
-        private static string connString =
-            "Data Source=(LocalDB)\\\\mssqllocaldb";
+        
         public static Config InitConfig()
         {
-            DbUtils.ConnectionString = connString;
+            DbUtils.ConnectionString = ConnectionString.Instance;
             //need to make sure db is created before the tests start
             //DbUtils.Initialize(connString);
             var specString = $@"
-akka.actor {{
-                        serializers {{
-                            hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
-                        }}
-                        serialization-bindings {{
-                            ""System.Object"" = hyperion
-                        }}
-                    }}
                     akka.persistence {{
                         publish-plugin-commands = on
                         journal {{

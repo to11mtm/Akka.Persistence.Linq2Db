@@ -11,7 +11,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
                     plugin = ""akka.persistence.journal.testspec""
                     testspec {{
                         class = ""{0}""
-                        plugin-dispatcher = ""akka.actor.default-dispatcher""
+                        #plugin-dispatcher = ""akka.actor.default-dispatcher""
+plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = ""SqliteMS""

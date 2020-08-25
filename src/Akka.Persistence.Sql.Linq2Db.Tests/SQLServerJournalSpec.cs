@@ -8,10 +8,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
     public class SQLServerJournalSpec : JournalSpec
     {
-        private static string connString =
-            "Data Source=(LocalDB)\\\\mssqllocaldb";
 
-        private static readonly  Config conf = SQLServerJournalSpecConfig.Create(connString,"journalSpec");
+        private static readonly  Config conf = SQLServerJournalSpecConfig.Create(ConnectionString.Instance,"journalSpec");
         public SQLServerJournalSpec(ITestOutputHelper output)
             : base(conf, "SQLServer", output)
         {

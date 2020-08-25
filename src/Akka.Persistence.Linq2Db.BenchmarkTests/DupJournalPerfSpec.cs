@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
@@ -35,9 +36,10 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
 
         private TimeSpan ExpectDuration;
 
-        protected L2dbJournalPerfSpec(Config config, string actorSystem, ITestOutputHelper output,int timeoutDurationSeconds = 30, int eventsCount = 10000)
+        protected L2dbJournalPerfSpec(Config config, string actorSystem, ITestOutputHelper output, int timeoutDurationSeconds = 30, int eventsCount = 10000)
             : base(config ?? Config.Empty, actorSystem, output)
         {
+            ThreadPool.SetMinThreads(12, 12);
             EventsCount = eventsCount;
             ExpectDuration = TimeSpan.FromSeconds(timeoutDurationSeconds);
             testProbe = CreateTestProbe();
@@ -57,6 +59,21 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
         {
             commands.ForEach(c => actor.Tell(new Cmd(mode, c)));
             testProbe.ExpectMsg(commands.Last(), ExpectDuration);
+        }
+
+        internal void FeedAndExpectLastGroup(
+            (IActorRef actor, TestProbe probe)[] autSet, string mode,
+            IReadOnlyList<int> commands)
+        {
+            foreach (var aut in autSet)
+            {
+                commands.ForEach(c => aut.actor.Tell(new Cmd(mode, c)));
+            }
+
+            foreach (var aut in autSet)
+            {
+                aut.probe.ExpectMsg(commands.Last(), ExpectDuration);
+            }
         }
         internal void FeedAndExpectLastSpecific((IActorRef actor, TestProbe probe) aut, string mode, IReadOnlyList<int> commands)
         {
@@ -204,15 +221,16 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
                         $"Persist()-ing {EventsCount} took {d.TotalMilliseconds} ms",
                     () =>
                     {
-                        var t1 = Task.Run(() =>
+                        FeedAndExpectLastGroup(new []{p1,p2,p3,p4},"p", Commands);
+                        /*var t1 = Task.Run(() =>
                             FeedAndExpectLastSpecific(p1, "p", Commands));
                         var t2 = Task.Run(() =>
                             FeedAndExpectLastSpecific(p2, "p", Commands));
                         var t3 = Task.Run(() =>
                             FeedAndExpectLastSpecific(p3, "p", Commands));
                         var t4 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p4, "p", Commands));
-                        Task.WhenAll(new[] {t1, t2, t3,t4}).Wait();
+                            FeedAndExpectLastSpecific(p4, "p", Commands));*/
+                        //Task.WhenAll(new[] {t1, t2, t3,t4}).Wait();
                         p1.aut.Tell(ResetCounter.Instance);
                         p2.aut.Tell(ResetCounter.Instance);
                         p3.aut.Tell(ResetCounter.Instance);
