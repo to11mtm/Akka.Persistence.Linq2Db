@@ -13,10 +13,9 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
 
 ## Advantages over `Akka.Contrib.Persistence.Sql.Common` Implementations:
 
- - Akka.Streams used aggressively to lower blocking overhead
+ - Akka.Streams used aggressively for tune-able blocking overhead.
  
  - Linq2Db usage for easier swapping of backend DBs.
- 
 
 ## Currently Implemented:
 
@@ -37,9 +36,13 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
 
 Please note that you -must- provide a Connection String and Provider name.
 
-Refer to the Members of `Linq2Db.ProviderName` for included providers.
+ - Refer to the Members of `Linq2Db.ProviderName` for included providers.
 
-
+ - `parallelism` controls the number of Akka.Streams Queues used to write to the DB.
+   - Default in JVM is `8`. We use `2`
+     - For SQL Server, Based on testing `2` is a fairly optimal number in .NET and thusly chosen as the default. If you are on a constrained server with heavy traffic you may want to instead utilize a lower count.
+       - Testing indicates that `2` will provide performance on par or better than both batching and non-batching journal.
+     - For SQLite, you can (should) just put `1` here, because SQLite allows at most a single writer at a time even in WAL mode.
 
 ```
 akka.persistence {
@@ -51,6 +54,8 @@ akka.persistence {
                         plugin-dispatcher = "akka.actor.default-dispatcher"
                         connection-string = "" # Connection String is Required! 
                         provider-name = "" # Provider name is required#
+                        
+                        parallelism = 4 # Number of Concurrent Writers
 
                         tables.journal { 
                                 auto-init = true 

@@ -8,7 +8,7 @@ using Akka.Dispatch;
 using Akka.Pattern;
 using Akka.Streams;
 using Akka.Streams.Dsl;
-using Akka.Util;
+using LanguageExt;
 using LinqToDB.Data;
 
 namespace Akka.Persistence.Sql.Linq2Db
@@ -39,30 +39,28 @@ namespace Akka.Persistence.Sql.Linq2Db
         protected IAdvancedScheduler ec;
         protected IMaterializer mat;
 
-        public abstract Source<Try<(IPersistentRepresentation, long)>, NotUsed> Messages(DataConnection db, string persistenceId, long fromSequenceNr, long toSequenceNr,
+        public abstract Source<Util.Try<(IPersistentRepresentation, long)>, NotUsed> Messages(DataConnection db, string persistenceId, long fromSequenceNr, long toSequenceNr,
             long max);
 
         public abstract
-            Source<Try<Linq2DbWriteJournal.ReplayCompletion>, NotUsed>
+            Source<Util.Try<Linq2DbWriteJournal.ReplayCompletion>, NotUsed>
             MessagesClass(DataConnection db, string persistenceId,
                 long fromSequenceNr, long toSequenceNr,
                 long max);
-        public Source<Try<Linq2DbWriteJournal.ReplayCompletion>, NotUsed> MessagesWithBatchClass(string persistenceId, long fromSequenceNr,
-            long toSequenceNr, int batchSize, Option<(TimeSpan,SchedulerBase)> refreshInterval)
+        public Source<Util.Try<Linq2DbWriteJournal.ReplayCompletion>, NotUsed> MessagesWithBatchClass(string persistenceId, long fromSequenceNr,
+            long toSequenceNr, int batchSize, Util.Option<(TimeSpan,SchedulerBase)> refreshInterval)
         {
             var src = Source
                 .UnfoldAsync<(long, FlowControl),
-                    IEnumerable<Try<Linq2DbWriteJournal.ReplayCompletion>>>(
+                    IEnumerable<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>>(
                     (Math.Max(1, fromSequenceNr),
                         FlowControl.Continue.Instance),
                     async opt =>
                     {
-                        async Task<Option<((long, FlowControl), IEnumerable<
-                                Try<Linq2DbWriteJournal.ReplayCompletion>>)>>
+                        async Task<Util.Option<((long, FlowControl), IEnumerable<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>)>>
                             RetrieveNextBatch()
                         {
-                            IImmutableList<
-                                Try<Linq2DbWriteJournal.ReplayCompletion>> msg;
+                            IImmutableList<Util.Try<Linq2DbWriteJournal.ReplayCompletion>> msg;
                             using (var conn =
                                 _connectionFactory.GetConnection())
                             {
@@ -70,12 +68,12 @@ namespace Akka.Persistence.Sql.Linq2Db
                                     await MessagesClass(conn, persistenceId, opt.Item1,
                                             toSequenceNr, batchSize)
                                         .RunWith(
-                                            Sink.Seq<Try<Linq2DbWriteJournal.ReplayCompletion>>(), mat);
+                                            Sink.Seq<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>(), mat);
                             }
 
                             var hasMoreEvents = msg.Count == batchSize;
                             var lastMsg = msg.LastOrDefault();
-                            Option<long> lastSeq = Option<long>.None;
+                            Util.Option<long> lastSeq = Util.Option<long>.None;
                             if (lastMsg != null && lastMsg.IsSuccess)
                             {
                                 lastSeq = lastMsg.Success.Select(r => r.SequenceNr);
@@ -117,15 +115,13 @@ namespace Akka.Persistence.Sql.Linq2Db
                                 nextFrom = opt.Item1;
                             }
 
-                            return new
-                                Option<((long, FlowControl), IEnumerable<
-                                    Try<Linq2DbWriteJournal.ReplayCompletion>>)>((
+                            return new Util.Option<((long, FlowControl), IEnumerable<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>)>((
                                     (nextFrom, nextControl), msg));
                         }
 
                         if (opt.Item2 is FlowControl.Stop)
                         {
-                            return Option<((long, FlowControl), IEnumerable<Try<Linq2DbWriteJournal.ReplayCompletion>>)>.None;
+                            return Util.Option<((long, FlowControl), IEnumerable<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>)>.None;
                         }
                         else if (opt.Item2 is FlowControl.Continue)
                         {
@@ -145,22 +141,24 @@ namespace Akka.Persistence.Sql.Linq2Db
 
             return src.SelectMany(r => r);
         }
-        public Source<Try<(IPersistentRepresentation, long)>, NotUsed> MessagesWithBatch(string persistenceId, long fromSequenceNr,
-            long toSequenceNr, int batchSize, Option<(TimeSpan,SchedulerBase)> refreshInterval)
+
+        
+        
+        public Source<Util.Try<(IPersistentRepresentation, long)>, NotUsed> MessagesWithBatch(string persistenceId, long fromSequenceNr,
+            long toSequenceNr, int batchSize, Util.Option<(TimeSpan,SchedulerBase)> refreshInterval)
         {
             var src = Source
                 .UnfoldAsync<(long, FlowControl),
-                    IEnumerable<Try<(IPersistentRepresentation, long)>>>(
+                    Seq<Util.Try<(IPersistentRepresentation, long)>>>(
                     (Math.Max(1, fromSequenceNr),
                         FlowControl.Continue.Instance),
                     async opt =>
                     {
-                        async Task<Option<((long, FlowControl), IEnumerable<
-                                Try<(IPersistentRepresentation, long)>>)>>
+                        async Task<Util.Option<((long, FlowControl), Seq<Util.Try<(IPersistentRepresentation, long)>>)>>
                             RetrieveNextBatch()
                         {
-                            IImmutableList<
-                                Try<(IPersistentRepresentation, long)>> msg;
+                            Seq<
+                                Util.Try<(IPersistentRepresentation, long)>> msg;
                             using (var conn =
                                 _connectionFactory.GetConnection())
                             {
@@ -168,14 +166,14 @@ namespace Akka.Persistence.Sql.Linq2Db
                                     await Messages(conn, persistenceId, opt.Item1,
                                             toSequenceNr, batchSize)
                                         .RunWith(
-                                            Sink.Seq<Try<(
+                                            ExtSeq.Seq<Util.Try<(
                                                 IPersistentRepresentation,
                                                 long)>>(), mat);
                             }
 
                             var hasMoreEvents = msg.Count == batchSize;
                             var lastMsg = msg.LastOrDefault();
-                            Option<long> lastSeq = Option<long>.None;
+                            Util.Option<long> lastSeq = Util.Option<long>.None;
                             if (lastMsg != null && lastMsg.IsSuccess)
                             {
                                 lastSeq = lastMsg.Success.Select(r => r.Item1.SequenceNr);
@@ -217,16 +215,14 @@ namespace Akka.Persistence.Sql.Linq2Db
                                 nextFrom = opt.Item1;
                             }
 
-                            return new
-                                Option<((long, FlowControl), IEnumerable<
-                                    Try<(IPersistentRepresentation, long)>>)>((
+                            return new Util.Option<((long, FlowControl), Seq<Util.Try<(IPersistentRepresentation, long)>>)>((
                                     (nextFrom, nextControl), msg));
                         }
 
                         switch (opt.Item2)
                         {
                             case FlowControl.Stop _:
-                                return Option<((long, FlowControl), IEnumerable<Try<(IPersistentRepresentation, long)>>)>.None;
+                                return Util.Option<((long, FlowControl), Seq<Util.Try<(IPersistentRepresentation, long)>>)>.None;
                             case FlowControl.Continue _:
                                 return await RetrieveNextBatch();
                             case FlowControl.ContinueDelayed _ when refreshInterval.HasValue:

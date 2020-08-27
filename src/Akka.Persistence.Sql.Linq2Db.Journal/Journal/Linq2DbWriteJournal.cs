@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
@@ -24,7 +25,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         {
             
             _mat = ActorMaterializer.Create(Context, ActorMaterializerSettings.Create(Context.System)
-                .WithDispatcher("akka.stream.default-blocking-io-dispatcher"),"l2dbWriteJournal"
+                    .WithDispatcher("akka.stream.default-blocking-io-dispatcher"),"l2dbWriteJournal"
             );
             _journalConfig = new JournalConfig(config);
             try
@@ -139,7 +140,7 @@ namespace Akka.Persistence.Sql.Linq2Db
             //Task<IImmutableList<Exception>>.Factory.
             
             future.ContinueWith((p) =>
-                    self.Tell(new WriteFinished(persistenceId, future)), TaskContinuationOptions.RunContinuationsAsynchronously);
+                    self.Tell(new WriteFinished(persistenceId, future)), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return await future;
             /*return await future.ContinueWith(task =>
             {

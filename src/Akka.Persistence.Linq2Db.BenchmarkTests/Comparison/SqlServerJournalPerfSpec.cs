@@ -46,31 +46,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
                                 connection-string = ""{DbUtils.ConnectionString}""
                             }}
                         }}
-dispatchers {{
-        # Dispatcher used by every plugin which does not declare explicit
-        # `plugin-dispatcher` field.
-        default-plugin-dispatcher {{
-            type = PinnedDispatcher
-            executor = ""fork-join-executor""
-        }}
-        # Default dispatcher for message replay.
-        default-replay-dispatcher {{
-            type = ForkJoinDispatcher
-			executor = ""fork-join-executor""
-            dedicated-thread-pool {{
-                # Fixed number of threads to have in this threadpool
-                thread-count = 8
-            }}
-        }}
-        # Default dispatcher for streaming snapshot IO
-        default-stream-dispatcher {{
-            type = ForkJoinDispatcher
-            dedicated-thread-pool {{
-                # Fixed number of threads to have in this threadpool
-                thread-count = 8
-            }}
-        }}
-    }}
                     }}";
 
             return ConfigurationFactory.ParseString(specString);

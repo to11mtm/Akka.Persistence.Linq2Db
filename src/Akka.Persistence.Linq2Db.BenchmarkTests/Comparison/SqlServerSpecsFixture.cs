@@ -28,7 +28,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
                         plugin = ""akka.persistence.journal.sqlite""
                         sqlite {
                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
-                            plugin-dispatcher = ""akka.actor.default-dispatcher""
+                            #plugin-dispatcher = ""akka.actor.default-dispatcher""
+                            plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
                             table-name = event_journal
                             metadata-table-name = journal_metadata
                             auto-initialize = on

@@ -261,7 +261,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
                         $"Persist()-ing {EventsCount} took {d.TotalMilliseconds} ms",
                     () =>
                     {
-                        var t1 = Task.Run(() =>
+                        /*var t1 = Task.Run(() =>
                             FeedAndExpectLastSpecific(p1, "p", Commands));
                         var t2 = Task.Run(() =>
                             FeedAndExpectLastSpecific(p2, "p", Commands));
@@ -276,8 +276,9 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
                         var t7 = Task.Run(() =>
                             FeedAndExpectLastSpecific(p7, "p", Commands));
                         var t8 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p8, "p", Commands));
-                        Task.WhenAll(new[] {t1, t2, t3,t4,t5,t6,t7,t8}).Wait();
+                            FeedAndExpectLastSpecific(p8, "p", Commands));*/
+                        FeedAndExpectLastGroup(new []{p1,p2,p3,p4,p5,p6,p7,p8}, "p", Commands);
+                        //Task.WhenAll(new[] {t1, t2, t3,t4,t5,t6,t7,t8}).Wait();
                         p1.aut.Tell(ResetCounter.Instance);
                         p2.aut.Tell(ResetCounter.Instance);
                         p3.aut.Tell(ResetCounter.Instance);

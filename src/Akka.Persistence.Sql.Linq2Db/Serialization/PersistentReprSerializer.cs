@@ -2,13 +2,15 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Akka.Persistence.Journal;
-using Akka.Util;
+using LanguageExt;
+using static LanguageExt.Prelude;
+using Seq = LanguageExt.Seq;
 
 namespace Akka.Persistence.Sql.Linq2Db
 {
     public abstract class PersistentReprSerializer<T>
     {
-        public List<Try<List<T>>> Serialize(
+        public List<Util.Try<List<T>>> Serialize(
             IEnumerable<AtomicWrite> messages)
         {
             return messages.Select(aw =>
@@ -19,9 +21,21 @@ namespace Akka.Persistence.Sql.Linq2Db
                 return TrySeq.SequenceList(serialized);
             }).ToList();
         }
+        
+        public Seq<Util.Try<Seq<T>>> SerializeSeq(
+            IEnumerable<AtomicWrite> messages)
+        {
+            return Seq(messages.Select(aw =>
+            {
+                var serialized =
+                    (aw.Payload as IEnumerable<IPersistentRepresentation>)
+                    .Select(Serialize);
+                return TrySeq.SequenceSeq(serialized);
+            }));
+        }
 
 
-        public Try<T> Serialize(IPersistentRepresentation persistentRepr)
+        public Util.Try<T> Serialize(IPersistentRepresentation persistentRepr)
         {
             switch (persistentRepr.Payload)
             {
@@ -33,12 +47,11 @@ namespace Akka.Persistence.Sql.Linq2Db
             }
         }
 
-        protected abstract Try<T> Serialize(
+        protected abstract Util.Try<T> Serialize(
             IPersistentRepresentation persistentRepr,
             IImmutableSet<string> tTags);
 
-        protected abstract
-            Try<(IPersistentRepresentation, IImmutableSet<string>, long)>
+        protected abstract Util.Try<(IPersistentRepresentation, IImmutableSet<string>, long)>
             deserialize(
                 T t);
     }
