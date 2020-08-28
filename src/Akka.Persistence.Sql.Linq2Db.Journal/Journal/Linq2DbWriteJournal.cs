@@ -111,44 +111,18 @@ namespace Akka.Persistence.Sql.Linq2Db
         }
         private Dictionary<string,Task> writeInProgress = new Dictionary<string, Task>();
         
-        protected Task<IImmutableList<Exception>> WriteMessagesAsyncD(IEnumerable<AtomicWrite> messages)
-        {
-            //TODO: CurrentTimeMillis;
-            var future =  _journal.AsyncWriteMessagesFuture(messages);
-            var persistenceId = messages.Head().PersistenceId;
-            writeInProgress.AddOrSet(persistenceId,future);
-            var self = Self;
-            //Task<IImmutableList<Exception>>.Factory.
-            future.ContinueWith(( p)=>
-                self.Tell(new WriteFinished(persistenceId, future)), TaskContinuationOptions.RunContinuationsAsynchronously);
-            return future;
-            /*return await future.ContinueWith(task =>
-            {
-                var finalResult = task.Result;
-                        return finalResult.Select(r => r.IsSuccess ? null : TryUnwrapException(r.Failure.Value))
-                        .ToImmutableList() as IImmutableList<Exception>;
-                //return finalResult;
-            });*/
-        }
         protected override async Task<IImmutableList<Exception>> WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
         {
             //TODO: CurrentTimeMillis;
-            var future =  _journal.AsyncWriteMessagesFuture(messages);
+            var future =  _journal.AsyncWriteMessages(messages);
             var persistenceId = messages.Head().PersistenceId;
             writeInProgress.AddOrSet(persistenceId,future);
             var self = Self;
-            //Task<IImmutableList<Exception>>.Factory.
             
             future.ContinueWith((p) =>
                     self.Tell(new WriteFinished(persistenceId, future)), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return await future;
-            /*return await future.ContinueWith(task =>
-            {
-                var finalResult = task.Result;
-                        return finalResult.Select(r => r.IsSuccess ? null : TryUnwrapException(r.Failure.Value))
-                        .ToImmutableList() as IImmutableList<Exception>;
-                //return finalResult;
-            });*/
+
         }
 
         protected override Task DeleteMessagesToAsync(string persistenceId, long toSequenceNr)

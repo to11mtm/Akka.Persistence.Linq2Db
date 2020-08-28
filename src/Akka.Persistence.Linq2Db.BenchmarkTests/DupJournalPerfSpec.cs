@@ -7,13 +7,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Routing;
 using Akka.TestKit;
+using Akka.Util;
 using Akka.Util.Internal;
 using JetBrains.dotMemoryUnit;
 using JetBrains.dotMemoryUnit.Kernel;
@@ -53,6 +56,31 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
         {
             var tp = CreateTestProbe();
             return (Sys.ActorOf(Props.Create(() => new BenchActor(pid, tp, EventsCount))), tp);
+        }
+        
+        internal (IActorRef aut,TestProbe probe) BenchActorNewProbeGroup(string pid, int numActors, int numMsgs)
+        {
+            var tp = CreateTestProbe();
+            return (
+                Sys.ActorOf(Props
+                    .Create(() =>
+                        new BenchActor(pid, tp, numMsgs, false))
+                    .WithRouter(new RoundRobinPool(numActors))), tp);
+        }
+        
+        internal void FeedAndExpectLastRouterSet(
+            (IActorRef actor, TestProbe probe) autSet, string mode,
+            IReadOnlyList<int> commands, int numExpect)
+        {
+            
+                commands.ForEach(c => autSet.actor.Tell(new Broadcast(new Cmd(mode, c))));
+
+                for (int i = 0; i < numExpect; i++)
+                {
+                    //Output.WriteLine("Expecting " + i);
+                    autSet.probe.ExpectMsg(commands.Last(), ExpectDuration);    
+                }
+
         }
 
         internal void FeedAndExpectLast(IActorRef actor, string mode, IReadOnlyList<int> commands)
@@ -102,6 +130,29 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
             double msgPerSec = (EventsCount / avgTime) * 1000;
 
             Output.WriteLine($"Average time: {avgTime} ms, {msgPerSec} msg/sec");
+        }
+        
+        internal void MeasureGroup(Func<TimeSpan, string> msg, Action block, int numMsg,int numGroup)
+        {
+            var measurements = new List<TimeSpan>(MeasurementIterations);
+
+            block(); //warm-up
+
+            int i = 0;
+            while (i < MeasurementIterations)
+            {
+                var sw = Stopwatch.StartNew();
+                block();
+                sw.Stop();
+                measurements.Add(sw.Elapsed);
+                Output.WriteLine(msg(sw.Elapsed));
+                i++;
+            }
+
+            double avgTime = measurements.Select(c => c.TotalMilliseconds).Sum() / MeasurementIterations;
+            double msgPerSec = (numMsg / avgTime) * 1000;
+
+            Output.WriteLine($"Workers: {numGroup} , Average time: {avgTime} ms, {msgPerSec} msg/sec");
         }
         
         [DotMemoryUnit(CollectAllocations=true, FailIfRunWithoutSupport = false)]
@@ -177,6 +228,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
         [Fact]
         public void PersistenceActor_performance_must_measure_PersistTriple()
         {
+            
             //  dotMemory.Check();
             
             var p1 = BenchActorNewProbe("TriplePersistPid1", EventsCount);
@@ -204,7 +256,26 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
             //);
             //dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
         }
-        
+
+        [Fact]
+        public void PersistenceActor_performance_must_measure_PersistGroup()
+        {
+            int numGroup = 10;
+            int numCommands = 1000;
+            var p1 = BenchActorNewProbeGroup("GroupPersistPid10", numGroup, numCommands);
+            MeasureGroup(
+                d =>
+                    $"Persist()-ing {numCommands} took {d.TotalMilliseconds} ms",
+                () =>
+                {
+                    FeedAndExpectLastRouterSet(p1, "p",
+                        Commands.Take(numCommands).ToImmutableList(),
+                        numGroup);
+            p1.aut.Tell(new Broadcast(ResetCounter.Instance));
+        },numCommands,numGroup
+        );
+            //Output.WriteLine($"Average Bulk Writes {BaseByteArrayJournalDao.bulkCopyRowCount/BaseByteArrayJournalDao.bulkCopyCount} Msg/write");
+    }
         [Fact]
         public void PersistenceActor_performance_must_measure_PersistQuad()
         {
@@ -292,6 +363,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
             //);
             //dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
         }
+
+        
 
         [Fact]
         public void PersistenceActor_performance_must_measure_PersistAll()
@@ -427,7 +500,13 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
         private int _counter = 0;
         private const int BatchSize = 50;
         private List<Cmd> _batch = new List<Cmd>(BatchSize);
-
+        
+        public BenchActor(string persistenceId, IActorRef replyTo, int replyAfter, bool groupName)
+        {
+            PersistenceId = persistenceId + MurmurHash.StringHash(Context.Parent.Path.Name + Context.Self.Path.Name);
+            ReplyTo = replyTo;
+            ReplyAfter = replyAfter;
+        }
         public BenchActor(string persistenceId, IActorRef replyTo, int replyAfter)
         {
             PersistenceId = persistenceId;

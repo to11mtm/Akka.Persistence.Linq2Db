@@ -4,7 +4,7 @@ namespace Akka.Persistence.Sql.Linq2Db
 {
     public sealed class JournalRow
     {
-        //[Identity]
+        [Identity]
         public long ordering { get; set; }
 
         public bool deleted { get; set; }
