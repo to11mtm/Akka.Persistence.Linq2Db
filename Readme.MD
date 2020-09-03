@@ -52,6 +52,9 @@ Please note that you -must- provide a Connection String and Provider name.
  - `delete-compatibility-mode` specifies to perform deletes in a way that is compatible with Akka.Persistence.Sql.Common.
    - This will use a Journal_Metadata table (or otherwise defined )
    - Note that this setting is independent of `logical-delete`
+ - `use-clone-connection` is a bit of a hack. Currently Linq2Db has a performance penalty for custom mapping schemas. Cloning the connection is faster but lowers performance.
+   - tl;dr - If a password or similar is in the connection string, leave `use-clone-connection` set to `false`.
+   - If you don't have a password or similar, run some tests with it set to `true`. You'll see improved write and read performance.
  - For Table Configuration:
    - Note that Tables/Columns will be created with the casing provided, and selected in the same way (i.e. if using a DB with case sensitive columns, be careful!)
 
@@ -79,6 +82,8 @@ akka.persistence {
                                 
                                 #If you want to specify a schema for your tables, you can do so here.
                                 schema-name = null
+
+                                use-clone-connection = false
 
                                 column-names {
                                        "ordering" = "ordering"

@@ -17,10 +17,4 @@
       <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db.Tests\Akka.Persistence.Sql.Linq2Db.Tests.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="linq2db, Version=3.0.0.0, Culture=neutral, PublicKeyToken=e41013125f9e410a">
-        <HintPath>..\..\..\linq2db\Source\LinqToDB\bin\Release\netstandard2.1\linq2db.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

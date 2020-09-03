@@ -17,6 +17,7 @@ akka.persistence {{
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = """ + LinqToDB.ProviderName.SqlServer2017 + @"""
                         parallelism = 3
+                        use-clone-connection = true
                         tables.journal {{ 
                            auto-init = true
                            table-name = ""{2}"" 

@@ -27,6 +27,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         [Column(Configuration = ProviderName.SQLite, IsPrimaryKey = false)]
         [Column(IsPrimaryKey = true)]
         public long sequenceNumber { get; set; }
+        [Column(CanBeNull = false)]
         public byte[] message { get; set; }
         public string tags { get; set; }
         public string manifest { get; set; }

@@ -14,6 +14,8 @@ namespace Akka.Persistence.Sql.Linq2Db
             DaoConfig = new BaseByteArrayJournalDaoConfig(config);
             var dbConf = config.GetString(ConfigKeys.useSharedDb);
             UseSharedDb = string.IsNullOrWhiteSpace(dbConf) ? null : dbConf;
+            UseCloneConnection =
+                config.GetBoolean("use-clone-connection", false);
         }
 
         public string UseSharedDb { get; protected set; }
@@ -29,5 +31,6 @@ namespace Akka.Persistence.Sql.Linq2Db
         public string DefaultSerializer { get; set; }
         public string ProviderName { get; }
         public string ConnectionString { get; }
+        public bool UseCloneConnection { get; set; }
     }
 }

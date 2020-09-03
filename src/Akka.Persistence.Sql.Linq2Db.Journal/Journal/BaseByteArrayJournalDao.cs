@@ -209,8 +209,7 @@ namespace Akka.Persistence.Sql.Linq2Db
                     var transaction =await db.BeginTransactionAsync();
                     try
                     {
-                        await db.GetTable<JournalRow>().TableName(_journalConfig
-                                .TableConfiguration.TableName)
+                        await db.GetTable<JournalRow>()
                             .Where(r =>
                                 r.persistenceId == persistenceId &&
                                 (r.sequenceNumber <= maxSequenceNr))
@@ -230,9 +229,7 @@ namespace Akka.Persistence.Sql.Linq2Db
 
                         if (logicalDelete == false)
                         {
-                            await db.GetTable<JournalRow>().TableName(
-                                    _journalConfig
-                                        .TableConfiguration.TableName)
+                            await db.GetTable<JournalRow>()
                                 .Where(r =>
                                     r.persistenceId == persistenceId &&
                                     (r.sequenceNumber <= maxSequenceNr &&
@@ -323,7 +320,6 @@ namespace Akka.Persistence.Sql.Linq2Db
             using (var db = _connectionFactory.GetConnection())
             {
                 await db.GetTable<JournalRow>()
-                    .TableName(_journalConfig.TableConfiguration.TableName)
                     .Where(r =>
                         r.persistenceId == persistenceId &&
                         r.sequenceNumber == write.SequenceNr)
@@ -364,8 +360,8 @@ namespace Akka.Persistence.Sql.Linq2Db
                     query = query.Take((int) max);
                 }
 
-                //LinqToDB.Common.Configuration.ContinueOnCapturedContext;
-
+                
+                //TODO: Is there a better way to do this async?
                 //return Source
                 //    .FromObservable(query.AsAsyncEnumerable().ToObservable())
                 

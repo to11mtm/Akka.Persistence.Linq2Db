@@ -17,8 +17,9 @@ plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = ""{2}""
                         parallelism = 1
-                        max-row-by-row-size = 10
+                        max-row-by-row-size = 50
                         tables.journal {{ auto-init = true }}
+                        use-clone-connection = true
                     }}
                 }}
             }}

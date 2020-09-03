@@ -46,7 +46,8 @@ namespace Akka.Persistence.Sql.Linq2Db
                     .Member(r=>r.SequenceNumber).HasColumnName(config.TableConfiguration.MetadataColumnNames.SequenceNumber)
                     ;
             }
-                
+
+            useCloneDataConnection = config.UseCloneConnection;
             mappingSchema = fmb.MappingSchema;
             opts = new LinqToDbConnectionOptionsBuilder()
                 .UseConnectionString(providerName, connString)
@@ -55,11 +56,20 @@ namespace Akka.Persistence.Sql.Linq2Db
         }
 
         private Lazy<DataConnection> _cloneConnection;
-        
+        private bool useCloneDataConnection;
+
         public DataConnection GetConnection()
         {
-            return new DataConnection(opts);
-            return (DataConnection)_cloneConnection.Value.Clone();
+            if (useCloneDataConnection)
+            {
+                return (DataConnection)_cloneConnection.Value.Clone();    
+            }
+            else
+            {
+                return new DataConnection(opts);    
+            }
+            
+            
         }
     }
 }
