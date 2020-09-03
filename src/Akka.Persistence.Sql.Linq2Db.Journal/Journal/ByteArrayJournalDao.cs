@@ -32,6 +32,18 @@ namespace Akka.Persistence.Sql.Linq2Db
                 {
                     
                 }
+
+                if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
+                {
+                    try
+                    {
+                        conn.CreateTable<JournalMetaData>();
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+                }
             }
         }
     }

@@ -15,19 +15,21 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
 plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
-                        provider-name = ""SqliteMS""
+                        provider-name = ""{2}""
+                        parallelism = 1
+                        max-row-by-row-size = 10
                         tables.journal {{ auto-init = true }}
                     }}
                 }}
             }}
         ";
         
-        public static Config Create(string connString)
+        public static Config Create(string connString, string providerName)
         {
             return ConfigurationFactory.ParseString(
                 string.Format(_journalBaseConfig,
                     typeof(Linq2DbWriteJournal).AssemblyQualifiedName,
-                    connString));
+                    connString, providerName));
         }
     }
 }

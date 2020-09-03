@@ -23,35 +23,46 @@ namespace Akka.Persistence.Sql.Linq2Db
 
         public Linq2DbWriteJournal(Config config)
         {
-            
-            _mat = ActorMaterializer.Create(Context, ActorMaterializerSettings.Create(Context.System)
-                    .WithDispatcher("akka.stream.default-blocking-io-dispatcher"),"l2dbWriteJournal"
-            );
-            _journalConfig = new JournalConfig(config);
             try
             {
-                _journal = new ByteArrayJournalDao( Context.System.Scheduler.Advanced ,_mat,
-                    new AkkaPersistenceDataConnectionFactory(_journalConfig),
-                    _journalConfig, Context.System.Serialization);
-            }
-            catch (Exception e)
-            {
-                Context.GetLogger().Error(e, "Error Initializing Journal!");
-                throw;
-            }
-            
-            if (_journalConfig.TableConfiguration.AutoInitialize)
-            {
+                _mat = ActorMaterializer.Create(Context,
+                    ActorMaterializerSettings.Create(Context.System)
+                        .WithDispatcher(
+                            "akka.stream.default-blocking-io-dispatcher"),
+                    "l2dbWriteJournal"
+                );
+                _journalConfig = new JournalConfig(config);
                 try
                 {
-                    _journal.InitializeTables(); 
+                    _journal = new ByteArrayJournalDao(
+                        Context.System.Scheduler.Advanced, _mat,
+                        new AkkaPersistenceDataConnectionFactory(
+                            _journalConfig),
+                        _journalConfig, Context.System.Serialization);
                 }
                 catch (Exception e)
                 {
-                    Context.GetLogger().Warning(e,
-                        "Unable to Initialize Persistence Journal Table!");
+                    Context.GetLogger().Error(e, "Error Initializing Journal!");
+                    throw;
                 }
-                
+
+                if (_journalConfig.TableConfiguration.AutoInitialize)
+                {
+                    try
+                    {
+                        _journal.InitializeTables();
+                    }
+                    catch (Exception e)
+                    {
+                        Context.GetLogger().Warning(e,
+                            "Unable to Initialize Persistence Journal Table!");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Context.GetLogger().Warning(ex,"Unexpected error initializing journal!");
             }
         }
 
@@ -110,17 +121,21 @@ namespace Akka.Persistence.Sql.Linq2Db
             return await _journal.HighestSequenceNr(persistenceId, fromSequenceNr);
         }
         private Dictionary<string,Task> writeInProgress = new Dictionary<string, Task>();
-        
-        protected override async Task<IImmutableList<Exception>> WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
+
+        protected override async Task<IImmutableList<Exception>>
+            WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
         {
             //TODO: CurrentTimeMillis;
-            var future =  _journal.AsyncWriteMessages(messages);
+            var future = _journal.AsyncWriteMessages(messages);
             var persistenceId = messages.Head().PersistenceId;
-            writeInProgress.AddOrSet(persistenceId,future);
+            writeInProgress.AddOrSet(persistenceId, future);
             var self = Self;
-            
+
             future.ContinueWith((p) =>
-                    self.Tell(new WriteFinished(persistenceId, future)), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    self.Tell(new WriteFinished(persistenceId, future)),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
             return await future;
 
         }

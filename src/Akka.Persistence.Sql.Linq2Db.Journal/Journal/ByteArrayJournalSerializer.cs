@@ -87,9 +87,9 @@ namespace Akka.Persistence.Sql.Linq2Db
                         new Persistent(deserialized, t.sequenceNumber,
                             t.persistenceId,
                             t.manifest, t.deleted, ActorRefs.NoSender, null),
-                        t.tags.Split(new[] {_separator},
+                        t.tags?.Split(new[] {_separator},
                                 StringSplitOptions.RemoveEmptyEntries)
-                            .ToImmutableHashSet(),
+                            .ToImmutableHashSet() ?? ImmutableHashSet<string>.Empty,
                         t.ordering);
                 }
             );

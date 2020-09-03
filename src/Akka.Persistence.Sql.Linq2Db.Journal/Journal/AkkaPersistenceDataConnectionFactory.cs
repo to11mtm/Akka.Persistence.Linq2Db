@@ -18,7 +18,7 @@ namespace Akka.Persistence.Sql.Linq2Db
             connString = config.ConnectionString;
             var fmb = new MappingSchema(MappingSchema.Default)
                 .GetFluentMappingBuilder();
-            fmb.Entity<JournalRow>()
+            var journalRowBuilder = fmb.Entity<JournalRow>()
                 .HasSchemaName(config.TableConfiguration.SchemaName)
                 .HasTableName(config.TableConfiguration.TableName)
                 .Member(r => r.deleted).HasColumnName(config
@@ -36,7 +36,17 @@ namespace Akka.Persistence.Sql.Linq2Db
                 .Member(r => r.persistenceId).HasColumnName(config
                     .TableConfiguration.ColumnNames.PersistenceId).HasLength(255)
                 .Member(r => r.sequenceNumber).HasColumnName(config
-                    .TableConfiguration.ColumnNames.SequenceNumber);
+                    .TableConfiguration.ColumnNames.SequenceNumber)
+                .Member(r=>r.Timestamp).HasColumnName(config.TableConfiguration.ColumnNames.Created);
+            if (config.DaoConfig.DeleteCompatibilityMode)
+            {
+                fmb.Entity<JournalMetaData>().HasTableName(config.TableConfiguration.MetadataTableName)
+                    .Member(r=>r.PersistenceId).HasColumnName(config.TableConfiguration.MetadataColumnNames.PersistenceId)
+                    .HasLength(255)
+                    .Member(r=>r.SequenceNumber).HasColumnName(config.TableConfiguration.MetadataColumnNames.SequenceNumber)
+                    ;
+            }
+                
             mappingSchema = fmb.MappingSchema;
             opts = new LinqToDbConnectionOptionsBuilder()
                 .UseConnectionString(providerName, connString)
@@ -48,7 +58,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         
         public DataConnection GetConnection()
         {
-            
+            return new DataConnection(opts);
             return (DataConnection)_cloneConnection.Value.Clone();
         }
     }

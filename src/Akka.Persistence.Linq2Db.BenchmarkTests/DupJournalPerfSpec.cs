@@ -258,11 +258,25 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
         }
 
         [Fact]
-        public void PersistenceActor_performance_must_measure_PersistGroup()
+        public void PersistenceActor_performance_must_measure_PersistGroup10()
         {
             int numGroup = 10;
-            int numCommands = 1000;
-            var p1 = BenchActorNewProbeGroup("GroupPersistPid10", numGroup, numCommands);
+            int numCommands = Math.Max(EventsCount/numGroup,1000);
+            RunGroupBenchmark(numGroup, numCommands);
+        }
+        
+        [Fact]
+        public void PersistenceActor_performance_must_measure_PersistGroup25()
+        {
+            int numGroup = 25;
+            int numCommands = Math.Max(EventsCount/numGroup,1000);
+            RunGroupBenchmark(numGroup, numCommands);
+        }
+
+        private void RunGroupBenchmark(int numGroup, int numCommands)
+        {
+            var p1 = BenchActorNewProbeGroup("GroupPersistPid" + numGroup, numGroup,
+                numCommands);
             MeasureGroup(
                 d =>
                     $"Persist()-ing {numCommands} took {d.TotalMilliseconds} ms",
@@ -271,11 +285,11 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
                     FeedAndExpectLastRouterSet(p1, "p",
                         Commands.Take(numCommands).ToImmutableList(),
                         numGroup);
-            p1.aut.Tell(new Broadcast(ResetCounter.Instance));
-        },numCommands,numGroup
-        );
-            //Output.WriteLine($"Average Bulk Writes {BaseByteArrayJournalDao.bulkCopyRowCount/BaseByteArrayJournalDao.bulkCopyCount} Msg/write");
-    }
+                    p1.aut.Tell(new Broadcast(ResetCounter.Instance));
+                }, numCommands, numGroup
+            );
+        }
+
         [Fact]
         public void PersistenceActor_performance_must_measure_PersistQuad()
         {
@@ -293,15 +307,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
                     () =>
                     {
                         FeedAndExpectLastGroup(new []{p1,p2,p3,p4},"p", Commands);
-                        /*var t1 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p1, "p", Commands));
-                        var t2 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p2, "p", Commands));
-                        var t3 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p3, "p", Commands));
-                        var t4 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p4, "p", Commands));*/
-                        //Task.WhenAll(new[] {t1, t2, t3,t4}).Wait();
                         p1.aut.Tell(ResetCounter.Instance);
                         p2.aut.Tell(ResetCounter.Instance);
                         p3.aut.Tell(ResetCounter.Instance);
@@ -332,24 +337,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
                         $"Persist()-ing {EventsCount} took {d.TotalMilliseconds} ms",
                     () =>
                     {
-                        /*var t1 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p1, "p", Commands));
-                        var t2 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p2, "p", Commands));
-                        var t3 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p3, "p", Commands));
-                        var t4 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p4, "p", Commands));
-                        var t5 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p5, "p", Commands));
-                        var t6 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p6, "p", Commands));
-                        var t7 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p7, "p", Commands));
-                        var t8 = Task.Run(() =>
-                            FeedAndExpectLastSpecific(p8, "p", Commands));*/
                         FeedAndExpectLastGroup(new []{p1,p2,p3,p4,p5,p6,p7,p8}, "p", Commands);
-                        //Task.WhenAll(new[] {t1, t2, t3,t4,t5,t6,t7,t8}).Wait();
                         p1.aut.Tell(ResetCounter.Instance);
                         p2.aut.Tell(ResetCounter.Instance);
                         p3.aut.Tell(ResetCounter.Instance);

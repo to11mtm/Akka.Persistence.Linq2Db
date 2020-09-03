@@ -18,8 +18,15 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
             {
                 try
                 {
-
                     conn.GetTable<JournalRow>().Delete();
+                }
+                catch (Exception e)
+                {
+                   
+                }
+                try
+                {
+                    conn.GetTable<JournalMetaData>().Delete();
                 }
                 catch (Exception e)
                 {

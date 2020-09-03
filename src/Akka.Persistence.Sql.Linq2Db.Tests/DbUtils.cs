@@ -4,7 +4,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
     public static class DbUtils
     {
-        public static string ConnectionString { get; internal set; }
+        public static string ConnectionString { get; set; }
 
         public static void Initialize(string connectionString)
         {
