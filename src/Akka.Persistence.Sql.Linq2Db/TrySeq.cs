@@ -1,28 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Akka.Util;
-
+using LanguageExt;
+using static LanguageExt.Prelude;
 namespace Akka.Persistence.Sql.Linq2Db
 {
     public static class TrySeq
     {
-        public static Try<IEnumerable<T>> Sequence<T>(IEnumerable<Try<T>> seq)
+        public static Util.Try<IEnumerable<T>> Sequence<T>(IEnumerable<Util.Try<T>> seq) 
         {
             
-                return Try<IEnumerable<T>>.From(()=>seq.Select(r => r.Get()));
-            
-            
-            //seq.Select(r=>r.IsSuccess? r.Success.Value )
-            if (seq.Any(t => t.IsSuccess == false))
-            {
-                return new Try<IEnumerable<T>>(seq
-                    .FirstOrDefault(r => r.IsSuccess == false).Failure.Value);
-            }
-            else
-            {
-                return new Try<IEnumerable<T>>(seq.Select(r=>r.Success.Value));
-            }
+                return Util.Try<IEnumerable<T>>.From(()=>seq.Select(r => r.Get()));
+        }
+        public static Util.Try<List<T>> SequenceList<T>(IEnumerable<Util.Try<T>> seq) 
+        {
+            return Util.Try<List<T>>.From(()=>seq.Select(r => r.Get()).ToList());
+        }
+        public static Util.Try<Seq<T>> SequenceSeq<T>(IEnumerable<Util.Try<T>> seq) 
+        {
+            return Util.Try<Seq<T>>.From(()=>seq.Select(r => r.Get()).ToList().ToSeq());
         }
     }
 }

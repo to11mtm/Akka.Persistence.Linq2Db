@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="437a71aa-dee3-4a77-a2d1-c486fd8bcb2e" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../../Readme.MD" beforeDir="false" afterPath="$PROJECT_DIR$/../../Readme.MD" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Akka.Persistence.Linq2Db.sln" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Linq2Db.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/Akka.Persistence.Sql.Linq2Db.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/Akka.Persistence.Sql.Linq2Db.Tests.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/SQLServerJournalSpecConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/SQLServerJournalSpecConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/SQLServerLinq2DbJournalPerfSpec.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/SQLServerLinq2DbJournalPerfSpec.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/UnitTest1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Tests/UnitTest1.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Akka.Persistence.Sql.Linq2Db.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Akka.Persistence.Sql.Linq2Db.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/BaseByteArrayJournalDao.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/BaseByteArrayJournalDao.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/BaseByteArrayJournalDaoConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/BaseByteArrayJournalDaoConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/BaseJournalDaoWithReadMessages.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/BaseJournalDaoWithReadMessages.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/ByteArrayJournalDao.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/ByteArrayJournalDao.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/ByteArrayJournalSerializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/ByteArrayJournalSerializer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/IJournalDao.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/IJournalDao.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/IJournalDaoWithReadMessages.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/IJournalDaoWithReadMessages.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/IJournalDaoWithUpdates.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/IJournalDaoWithUpdates.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/JournalConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/JournalConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/JournalPluginConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/JournalPluginConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/JournalRow.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/JournalRow.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/JournalSequenceRetrievalConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/JournalSequenceRetrievalConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/JournalTableColumnNames.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/JournalTableColumnNames.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/JournalTableConfiguration.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/JournalTableConfiguration.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Journal/Linq2DbWriteJournal.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/Journal/Linq2DbWriteJournal.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ReadJournalConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/ReadJournalConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ReadJournalPluginConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Akka.Persistence.Sql.Linq2Db.Journal/ReadJournalPluginConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SnapshotTableConfiguration.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SnapshotTableConfiguration.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TrySeq.cs" beforeDir="false" afterPath="$PROJECT_DIR$/TrySeq.cs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectId" id="1g1M1lWXuKf0pUPQngSEfAaJelq" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="437a71aa-dee3-4a77-a2d1-c486fd8bcb2e" name="Default Changelist" comment="" />
+      <created>1597277433754</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1597277433754</updated>
+      <workItem from="1597277444933" duration="24000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="UnityProjectConfiguration" hasMinimizedUI="null" />
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+</project>
