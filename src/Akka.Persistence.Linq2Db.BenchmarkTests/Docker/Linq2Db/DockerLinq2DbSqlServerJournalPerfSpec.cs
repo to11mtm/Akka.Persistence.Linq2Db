@@ -1,11 +1,13 @@
 ﻿using System;
 using Akka.Configuration;
-using Akka.Persistence.Sql.Linq2Db.Tests.Performance;
+using Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db.Tests;
 using LinqToDB;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Akka.Persistence.Sql.Linq2Db.Tests
+namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.Linq2Db
 {
     [Collection("SqlServerSpec")]
     public class DockerLinq2DbSqlServerJournalPerfSpec : L2dbJournalPerfSpec
@@ -17,10 +19,13 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
                     plugin = ""akka.persistence.journal.testspec""
                     testspec {{
                         class = ""{0}""
-                        plugin-dispatcher = ""akka.actor.default-dispatcher""
+                        #plugin-dispatcher = ""akka.actor.default-dispatcher""
+                        plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
+                                
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = """ + LinqToDB.ProviderName.SqlServer2012 + @"""
+                        use-clone-connection = true
                         tables.journal {{ 
                            auto-init = true
                            table-name = ""{2}"" 
@@ -39,7 +44,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
         }
         public DockerLinq2DbSqlServerJournalPerfSpec(ITestOutputHelper output,
             SqlServerFixture fixture) : base(InitConfig(fixture),
-            "sqlserverperf", output,40, 100)
+            "sqlserverperf", output,40, eventsCount: TestConstants.DockerNumMessages)
         {
             
             var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(Create(DockerDbUtils.ConnectionString).GetConfig("akka.persistence.journal.testspec")));

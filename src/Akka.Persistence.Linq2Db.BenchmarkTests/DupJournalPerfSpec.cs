@@ -23,7 +23,7 @@ using JetBrains.dotMemoryUnit.Kernel;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
+namespace Akka.Persistence.Linq2Db.BenchmarkTests
 {
     public abstract class L2dbJournalPerfSpec : Akka.TestKit.Xunit2.TestKit
     {
@@ -151,8 +151,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
 
             double avgTime = measurements.Select(c => c.TotalMilliseconds).Sum() / MeasurementIterations;
             double msgPerSec = (numMsg / avgTime) * 1000;
-
-            Output.WriteLine($"Workers: {numGroup} , Average time: {avgTime} ms, {msgPerSec} msg/sec");
+            double msgPerSecTotal = (numMsg*numGroup / avgTime) * 1000;
+            Output.WriteLine($"Workers: {numGroup} , Average time: {avgTime} ms, {msgPerSec} msg/sec/actor, {msgPerSecTotal} total msg/sec.");
         }
         
         [DotMemoryUnit(CollectAllocations=true, FailIfRunWithoutSupport = false)]
@@ -261,7 +261,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
         public void PersistenceActor_performance_must_measure_PersistGroup10()
         {
             int numGroup = 10;
-            int numCommands = Math.Max(EventsCount/numGroup,1000);
+            int numCommands = Math.Min(EventsCount/10,1000);
             RunGroupBenchmark(numGroup, numCommands);
         }
         
@@ -269,7 +269,23 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
         public void PersistenceActor_performance_must_measure_PersistGroup25()
         {
             int numGroup = 25;
-            int numCommands = Math.Max(EventsCount/numGroup,1000);
+            int numCommands = Math.Min(EventsCount/10,1000);
+            RunGroupBenchmark(numGroup, numCommands);
+        }
+        
+        [Fact]
+        public void PersistenceActor_performance_must_measure_PersistGroup50()
+        {
+            int numGroup = 50;
+            int numCommands = Math.Min(EventsCount/10,1000);
+            RunGroupBenchmark(numGroup, numCommands);
+        }
+        
+        [Fact]
+        public void PersistenceActor_performance_must_measure_PersistGroup100()
+        {
+            int numGroup = 100;
+            int numCommands = Math.Min(EventsCount/10,1000);
             RunGroupBenchmark(numGroup, numCommands);
         }
 
@@ -279,7 +295,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests.Performance
                 numCommands);
             MeasureGroup(
                 d =>
-                    $"Persist()-ing {numCommands} took {d.TotalMilliseconds} ms",
+                    $"Persist()-ing {numCommands} * {numGroup} took {d.TotalMilliseconds} ms",
                 () =>
                 {
                     FeedAndExpectLastRouterSet(p1, "p",

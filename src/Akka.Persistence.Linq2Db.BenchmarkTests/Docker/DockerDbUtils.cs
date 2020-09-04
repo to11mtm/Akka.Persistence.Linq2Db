@@ -1,6 +1,6 @@
 ﻿using System.Data.SqlClient;
 
-namespace Akka.Persistence.Sql.Linq2Db.Tests
+namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker
 {
     public static class DockerDbUtils
     {

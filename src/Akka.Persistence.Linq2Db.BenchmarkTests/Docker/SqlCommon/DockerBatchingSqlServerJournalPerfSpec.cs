@@ -1,14 +1,14 @@
 ﻿using Akka.Configuration;
-using Akka.Persistence.Sql.Linq2Db.Tests.Performance;
+using Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Akka.Persistence.Sql.Linq2Db.Tests
+namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.SqlCommon
 {
     [Collection("SqlServerSpec")]
     public class DockerBatchingSqlServerJournalPerfSpec : L2dbJournalPerfSpec
     {
-        public DockerBatchingSqlServerJournalPerfSpec(ITestOutputHelper output, SqlServerFixture fixture) : base(InitConfig(fixture),"sqlserverperfspec", output,40, 100)
+        public DockerBatchingSqlServerJournalPerfSpec(ITestOutputHelper output, SqlServerFixture fixture) : base(InitConfig(fixture),"sqlserverperfspec", output,40, TestConstants.DockerNumMessages)
         {
         }
         public static Config InitConfig(SqlServerFixture fixture)
@@ -22,7 +22,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
                             plugin = ""akka.persistence.journal.sql-server""
                             sql-server {{
                                 class = ""Akka.Persistence.SqlServer.Journal.BatchingSqlServerJournal, Akka.Persistence.SqlServer""
-                                plugin-dispatcher = ""akka.actor.default-dispatcher""
+                                #plugin-dispatcher = ""akka.actor.default-dispatcher""
+                                plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
                                 table-name = EventJournal
                                 schema-name = dbo
                                 auto-initialize = on

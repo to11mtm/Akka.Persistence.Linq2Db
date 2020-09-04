@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Data.SQLite;
-using Akka.Persistence.Sql.Linq2Db.Tests.Performance;
+using Akka.Persistence.Sql.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db.Tests;
 using Akka.Util.Internal;
 using LinqToDB;
 using Xunit.Abstractions;
 
-namespace Akka.Persistence.Sql.Linq2Db.Tests
+namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db
 {
     public class SystemDataSQLiteLinq2DbJournalPerfSpec : L2dbJournalPerfSpec
     {
@@ -32,7 +33,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
         }
             
         public SystemDataSQLiteLinq2DbJournalPerfSpec(ITestOutputHelper output)
-            : base(SQLiteJournalSpecConfig.Create(connString, ProviderName.SQLiteClassic), "SqliteJournalSpec", output)
+            : base(SQLiteJournalSpecConfig.Create(connString, ProviderName.SQLiteClassic), "SqliteJournalSpec", output,eventsCount: TestConstants.NumMessages)
         {
             
             heldSqliteConnection.Open();

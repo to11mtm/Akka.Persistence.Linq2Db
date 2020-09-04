@@ -1,16 +1,16 @@
 ﻿using Akka.Configuration;
-using Akka.Persistence.Sql.Linq2Db.Tests.Performance;
+using Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db;
 using Akka.Util.Internal;
 using Xunit.Abstractions;
 
-namespace Akka.Persistence.Sql.Linq2Db.Tests
+namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.SqlCommon
 {
     public class SqliteJournalPerfSpec : L2dbJournalPerfSpec
     {
         private static AtomicCounter counter = new AtomicCounter(0);
 
         public SqliteJournalPerfSpec(ITestOutputHelper output)
-            : base(CreateSpecConfig("Filename=file:memdb-journal-" + counter.IncrementAndGet() + ".db;Mode=Memory;Cache=Shared"), "SqliteJournalSpec", output)
+            : base(CreateSpecConfig("Filename=file:memdb-journal-" + counter.IncrementAndGet() + ".db;Mode=Memory;Cache=Shared"), "SqliteJournalSpec", output,eventsCount: TestConstants.NumMessages)
         {
         }
 

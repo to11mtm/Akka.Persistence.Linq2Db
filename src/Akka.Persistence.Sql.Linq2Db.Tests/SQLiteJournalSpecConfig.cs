@@ -1,4 +1,5 @@
 ﻿using Akka.Configuration;
+using LinqToDB;
 
 namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
@@ -19,7 +20,7 @@ plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
                         parallelism = 1
                         max-row-by-row-size = 50
                         tables.journal {{ auto-init = true }}
-                        use-clone-connection = true
+                        use-clone-connection = ""{3}""
                     }}
                 }}
             }}
@@ -30,7 +31,7 @@ plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
             return ConfigurationFactory.ParseString(
                 string.Format(_journalBaseConfig,
                     typeof(Linq2DbWriteJournal).AssemblyQualifiedName,
-                    connString, providerName));
+                    connString, providerName, (providerName == ProviderName.SQLiteMS).ToString().ToLower()));
         }
     }
 }

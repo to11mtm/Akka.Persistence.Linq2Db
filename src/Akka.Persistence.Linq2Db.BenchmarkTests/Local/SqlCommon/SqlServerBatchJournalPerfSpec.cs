@@ -1,18 +1,19 @@
 ﻿using System;
 using Akka.Configuration;
-using Akka.Persistence.Sql.Linq2Db.Tests.Performance;
-using Akka.Util;
+using Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db.Tests;
 using JetBrains.dotMemoryUnit;
 using LinqToDB;
 using LinqToDB.Data;
 using Xunit.Abstractions;
 using Config = Akka.Configuration.Config;
 
-namespace Akka.Persistence.Sql.Linq2Db.Tests
+namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.SqlCommon
 {
     public class SqlServerBatchJournalPerfSpec : L2dbJournalPerfSpec
     {
-        public SqlServerBatchJournalPerfSpec(ITestOutputHelper output) : base(InitConfig(),"sqlserverperfspec", output, eventsCount:10000)
+        public SqlServerBatchJournalPerfSpec(ITestOutputHelper output) : base(InitConfig(),"sqlserverperfspec", output, eventsCount: TestConstants.NumMessages)
         {
             DotMemoryUnitTestOutput.SetOutputMethod(
                 message => output.WriteLine(message));

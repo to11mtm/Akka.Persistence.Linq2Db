@@ -14,7 +14,10 @@ namespace Akka.Persistence.Sql.Linq2Db
         }
         public static Util.Try<List<T>> SequenceList<T>(IEnumerable<Util.Try<T>> seq) 
         {
-            return Util.Try<List<T>>.From(()=>seq.Select(r => r.Get()).ToList());
+            return Util.Try<List<T>>.From(()=>
+            {
+                return seq.Select(r => r.Get()).ToList();
+            });
         }
         public static Util.Try<Seq<T>> SequenceSeq<T>(IEnumerable<Util.Try<T>> seq) 
         {
