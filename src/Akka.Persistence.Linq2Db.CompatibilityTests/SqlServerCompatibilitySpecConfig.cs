@@ -43,7 +43,7 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
             ""deleted"" = ""isdeleted""
             ""persistenceId"" = ""persistenceId""
             ""sequenceNumber"" = ""sequenceNr""
-            ""created"" = ""created""
+            ""created"" = ""timestamp""
             ""tags"" = ""tags""
             ""message"" = ""payload""
             ""identifier"" = ""serializerid""

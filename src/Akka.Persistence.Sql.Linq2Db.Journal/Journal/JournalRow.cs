@@ -16,8 +16,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         [Column(Configuration = ProviderName.SQLite, DbType = "INTEGER", IsIdentity = true, IsPrimaryKey = true)]
         [Column(IsIdentity = true, IsPrimaryKey = false)]
         public long ordering { get; set; }
-
-        [Column()] 
+        
         public long Timestamp { get; set; } = 0;
 
         public bool deleted { get; set; }
