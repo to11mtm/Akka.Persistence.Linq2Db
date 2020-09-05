@@ -128,7 +128,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
 
             double avgTime = measurements.Select(c => c.TotalMilliseconds).Sum() / MeasurementIterations;
             double msgPerSec = (EventsCount / avgTime) * 1000;
-
+            
             Output.WriteLine($"Average time: {avgTime} ms, {msgPerSec} msg/sec");
         }
         
@@ -201,6 +201,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
         }
         
         //[DotMemoryUnit(CollectAllocations=true, FailIfRunWithoutSupport = false)]
+        /*
         [Fact]
         public void PersistenceActor_performance_must_measure_PersistDouble()
         {
@@ -256,7 +257,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
             //);
             //dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
         }
-
+        */
         [Fact]
         public void PersistenceActor_performance_must_measure_PersistGroup10()
         {
@@ -269,7 +270,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
         public void PersistenceActor_performance_must_measure_PersistGroup25()
         {
             int numGroup = 25;
-            int numCommands = Math.Min(EventsCount/10,1000);
+            int numCommands = Math.Min(EventsCount/25,1000);
             RunGroupBenchmark(numGroup, numCommands);
         }
         
@@ -277,7 +278,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
         public void PersistenceActor_performance_must_measure_PersistGroup50()
         {
             int numGroup = 50;
-            int numCommands = Math.Min(EventsCount/10,1000);
+            int numCommands = Math.Min(EventsCount/50,1000);
             RunGroupBenchmark(numGroup, numCommands);
         }
         
@@ -285,7 +286,15 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
         public void PersistenceActor_performance_must_measure_PersistGroup100()
         {
             int numGroup = 100;
-            int numCommands = Math.Min(EventsCount/10,1000);
+            int numCommands = Math.Min(EventsCount/100,1000);
+            RunGroupBenchmark(numGroup, numCommands);
+        }
+        
+        [Fact]
+        public void PersistenceActor_performance_must_measure_PersistGroup200()
+        {
+            int numGroup = 200;
+            int numCommands = Math.Min(EventsCount/100,500);
             RunGroupBenchmark(numGroup, numCommands);
         }
 
@@ -305,7 +314,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
                 }, numCommands, numGroup
             );
         }
-
+        /*
         [Fact]
         public void PersistenceActor_performance_must_measure_PersistQuad()
         {
@@ -367,7 +376,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
             //);
             //dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
         }
-
+*/
         
 
         [Fact]
@@ -423,7 +432,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
             var p2 = BenchActorNewProbe("DoublePersistRecoverPid2", EventsCount);
             FeedAndExpectLastSpecific(p1, "p", Commands);
             FeedAndExpectLastSpecific(p2, "p", Commands);
-            Measure(d => $"Recovering {EventsCount} took {d.TotalMilliseconds} ms", () =>
+            MeasureGroup(d => $"Recovering {EventsCount} took {d.TotalMilliseconds} ms", () =>
             {
                var task1 = Task.Run(()=>
                {
@@ -438,7 +447,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
                });
                Task.WaitAll(new[] {task1, task2});
 
-            });
+            },EventsCount,2);
         }
         [Fact]
         public void PersistenceActor_performance_must_measure_RecoveringFour()
@@ -451,7 +460,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
             FeedAndExpectLastSpecific(p2, "p", Commands);
             FeedAndExpectLastSpecific(p3, "p", Commands);
             FeedAndExpectLastSpecific(p4, "p", Commands);
-            Measure(d => $"Recovering {EventsCount} took {d.TotalMilliseconds} ms", () =>
+            MeasureGroup(d => $"Recovering {EventsCount} took {d.TotalMilliseconds} ms", () =>
             {
                 var task1 = Task.Run(()=>
                 {
@@ -476,7 +485,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
                 });
                 Task.WaitAll(new[] {task1, task2,task3,task4});
 
-            });
+            },EventsCount,4);
         }
     }
 

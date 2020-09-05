@@ -94,8 +94,20 @@ namespace Akka.Persistence.Sql.Linq2Db
         public override async Task ReplayMessagesAsync(IActorContext context, string persistenceId,
             long fromSequenceNr, long toSequenceNr, long max, Action<IPersistentRepresentation> recoveryCallback)
         {
+            await _journal.MessagesWithBatchClass2(persistenceId, fromSequenceNr,
+                    toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
+                    Option<(TimeSpan, SchedulerBase)>.None)
+                .Take(max).SelectAsync(1,
+                    t => t.IsSuccess
+                        ? Task.FromResult(t.Success.Value)
+                        : Task.FromException<ReplayCompletion>(
+                            t.Failure.Value))
+                .RunForeach(r =>
+                {
+                    recoveryCallback(r.repr);
+                }, _mat);
 
-            await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
+            /*await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
                     toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
                     Option<(TimeSpan, SchedulerBase)>.None)
                 .Take(max).SelectAsync(1,
@@ -106,7 +118,7 @@ namespace Akka.Persistence.Sql.Linq2Db
                 .RunForeach(r =>
                 {
                     recoveryCallback(r.Item1);
-                }, _mat);
+                }, _mat);*/
         }
 
         public override async Task<long> ReadHighestSequenceNrAsync(string persistenceId, long fromSequenceNr)

@@ -143,6 +143,94 @@ namespace Akka.Persistence.Sql.Linq2Db
         }
 
         
+        public Source<Util.Try<Linq2DbWriteJournal.ReplayCompletion>, NotUsed> MessagesWithBatchClass2(string persistenceId, long fromSequenceNr,
+            long toSequenceNr, int batchSize, Util.Option<(TimeSpan,SchedulerBase)> refreshInterval)
+        {
+            var src = Source
+                .UnfoldAsync<(long, FlowControl),
+                    Seq<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>>(
+                    (Math.Max(1, fromSequenceNr),
+                        FlowControl.Continue.Instance),
+                    async opt =>
+                    {
+                        async Task<Util.Option<((long, FlowControl), Seq<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>)>>
+                            RetrieveNextBatch()
+                        {
+                            Seq<
+                                Util.Try<Linq2DbWriteJournal.ReplayCompletion>> msg;
+                            using (var conn =
+                                _connectionFactory.GetConnection())
+                            {
+                                msg =
+                                    await MessagesClass(conn, persistenceId, opt.Item1,
+                                            toSequenceNr, batchSize)
+                                        .RunWith(
+                                            ExtSeq.Seq<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>(), mat);
+                            }
+
+                            var hasMoreEvents = msg.Count == batchSize;
+                            var lastMsg = msg.LastOrDefault();
+                            Util.Option<long> lastSeq = Util.Option<long>.None;
+                            if (lastMsg != null && lastMsg.IsSuccess)
+                            {
+                                lastSeq = lastMsg.Success.Select(r => r.repr.SequenceNr);
+                            }
+                            else if (lastMsg != null &&  lastMsg.Failure.HasValue)
+                            {
+                                throw lastMsg.Failure.Value;
+                            }
+
+                            var hasLastEvent =
+                                lastSeq.HasValue &&
+                                lastSeq.Value >= toSequenceNr;
+                            FlowControl nextControl = null;
+                            if (hasLastEvent || opt.Item1 > toSequenceNr)
+                            {
+                                nextControl = FlowControl.Stop.Instance;
+                            }
+                            else if (hasMoreEvents)
+                            {
+                                nextControl = FlowControl.Continue.Instance;
+                            }
+                            else if (refreshInterval.HasValue == false)
+                            {
+                                nextControl = FlowControl.Stop.Instance;
+                            }
+                            else
+                            {
+                                nextControl = FlowControl.ContinueDelayed
+                                    .Instance;
+                            }
+
+                            long nextFrom = 0;
+                            if (lastSeq.HasValue)
+                            {
+                                nextFrom = lastSeq.Value + 1;
+                            }
+                            else
+                            {
+                                nextFrom = opt.Item1;
+                            }
+
+                            return new Util.Option<((long, FlowControl), Seq<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>)>((
+                                    (nextFrom, nextControl), msg));
+                        }
+
+                        switch (opt.Item2)
+                        {
+                            case FlowControl.Stop _:
+                                return Util.Option<((long, FlowControl), Seq<Util.Try<Linq2DbWriteJournal.ReplayCompletion>>)>.None;
+                            case FlowControl.Continue _:
+                                return await RetrieveNextBatch();
+                            case FlowControl.ContinueDelayed _ when refreshInterval.HasValue:
+                                return await FutureTimeoutSupport.After(refreshInterval.Value.Item1,refreshInterval.Value.Item2, RetrieveNextBatch);
+                            default:
+                                throw null;
+                        }
+                    });
+
+            return src.SelectMany(r => r);
+        }
         
         public Source<Util.Try<(IPersistentRepresentation, long)>, NotUsed> MessagesWithBatch(string persistenceId, long fromSequenceNr,
             long toSequenceNr, int batchSize, Util.Option<(TimeSpan,SchedulerBase)> refreshInterval)

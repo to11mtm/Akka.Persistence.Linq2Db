@@ -139,7 +139,7 @@ namespace Akka.Persistence.Sql.Linq2Db
                                         .MaxRowByRowSize
                                         ? BulkCopyType.Default
                                         : BulkCopyType.MultipleRows,
-                                UseInternalTransaction = true
+                                UseInternalTransaction = true 
                             }, xs);
                 }
                 else if (xs.Count > 0)

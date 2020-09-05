@@ -21,7 +21,7 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
                                 class = ""Akka.Persistence.SqlServer.Journal.SqlServerJournal, Akka.Persistence.SqlServer""
                                 plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
                                 table-name = ""{tablename}""
-                                metadata-table-name
+                                metadata-table-name = ""{metadatatablename}""
                                 schema-name = dbo
                                 auto-initialize = on
                                 connection-string = ""{DbUtils.ConnectionString}""
@@ -34,21 +34,12 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = ""{LinqToDB.ProviderName.SqlServer2017}""
                         parallelism = 3
+                        table-compatibility-mode = true
                         tables.journal {{ 
                            auto-init = true
                            table-name = ""{tablename}"" 
                            metadata-table-name = ""{metadatatablename}""
-                           column-names {{
-                ""ordering"" = ""ordering""
-            ""deleted"" = ""isdeleted""
-            ""persistenceId"" = ""persistenceId""
-            ""sequenceNumber"" = ""sequenceNr""
-            ""created"" = ""timestamp""
-            ""tags"" = ""tags""
-            ""message"" = ""payload""
-            ""identifier"" = ""serializerid""
-            ""manifest"" = ""manifest""
-                }}
+                           
                            }}
                     }}
 
