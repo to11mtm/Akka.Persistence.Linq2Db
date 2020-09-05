@@ -1,16 +1,8 @@
 ﻿using LinqToDB;
 using LinqToDB.Mapping;
-using NotNullAttribute = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types
 {
-    public sealed class JournalMetaData
-    {
-        [Column(IsPrimaryKey = true, CanBeNull = false)]
-        public string PersistenceId { get; set; }
-        [PrimaryKey]
-        public long SequenceNumber { get; set; }
-    }
     public sealed class JournalRow
     {
         [Column(Configuration = ProviderName.SQLite, DbType = "INTEGER", IsIdentity = true, IsPrimaryKey = true)]

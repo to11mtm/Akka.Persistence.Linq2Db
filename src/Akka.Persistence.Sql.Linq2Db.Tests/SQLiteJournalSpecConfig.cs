@@ -1,4 +1,5 @@
 ﻿using Akka.Configuration;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal;
 using LinqToDB;
 
 namespace Akka.Persistence.Sql.Linq2Db.Tests

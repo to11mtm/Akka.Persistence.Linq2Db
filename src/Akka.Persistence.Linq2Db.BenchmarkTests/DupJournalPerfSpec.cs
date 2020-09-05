@@ -297,6 +297,14 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
             int numCommands = Math.Min(EventsCount/100,500);
             RunGroupBenchmark(numGroup, numCommands);
         }
+        
+        [Fact]
+        public void PersistenceActor_performance_must_measure_PersistGroup400()
+        {
+            int numGroup = 400;
+            int numCommands = Math.Min(EventsCount/100,500);
+            RunGroupBenchmark(numGroup, numCommands);
+        }
 
         private void RunGroupBenchmark(int numGroup, int numCommands)
         {

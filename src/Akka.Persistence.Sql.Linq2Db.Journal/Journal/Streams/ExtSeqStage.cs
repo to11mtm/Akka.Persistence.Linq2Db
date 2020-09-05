@@ -1,30 +1,23 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Akka.Streams;
-using Akka.Streams.Dsl;
-using Akka.Streams.Implementation.Stages;
 using Akka.Streams.Stage;
 using LanguageExt;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Streams
 {
-    public static class ExtSeq
-    {
-        public static Sink<TIn, Task<Seq<TIn>>> Seq<TIn>() => Sink.FromGraph(new SeqStage<TIn>());
-    }
-    public sealed class SeqStage<T> : GraphStageWithMaterializedValue<SinkShape<T>, Task<Seq<T>>>
+    public sealed class ExtSeqStage<T> : GraphStageWithMaterializedValue<SinkShape<T>, Task<Seq<T>>>
     {
         #region stage logic
 
         private sealed class Logic : InGraphStageLogic
         {
-            private readonly SeqStage<T> _stage;
+            private readonly ExtSeqStage<T> _stage;
             private readonly TaskCompletionSource<Seq<T>> _promise;
             private Seq<T> _buf = Seq<T>.Empty;
             private bool _completionSignalled;
 
-            public Logic(SeqStage<T> stage, TaskCompletionSource<Seq<T>> promise) : base(stage.Shape)
+            public Logic(ExtSeqStage<T> stage, TaskCompletionSource<Seq<T>> promise) : base(stage.Shape)
             {
                 _stage = stage;
                 _promise = promise;
@@ -66,7 +59,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         /// <summary>
         /// TBD
         /// </summary>
-        public SeqStage()
+        public ExtSeqStage()
         {
             Shape = new SinkShape<T>(In);
         }

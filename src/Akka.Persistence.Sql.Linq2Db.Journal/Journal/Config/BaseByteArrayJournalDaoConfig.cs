@@ -1,11 +1,10 @@
-﻿using Akka.Configuration;
-using LinqToDB.Data;
+﻿using LinqToDB.Data;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
 {
     public class BaseByteArrayJournalDaoConfig
     {
-        public BaseByteArrayJournalDaoConfig(Config config)
+        public BaseByteArrayJournalDaoConfig(Configuration.Config config)
         {
             
             BufferSize = config.GetInt("buffer-size", 1000);

@@ -1,12 +1,12 @@
 ﻿using Akka.Configuration;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
 {
     public class JournalTableConfiguration
     {
-        public JournalTableConfiguration(Config config)
+        public JournalTableConfiguration(Configuration.Config config)
         {
-            var localcfg = config.GetConfig("tables.journal").SafeWithFallback(Config.Empty);
+            var localcfg = config.GetConfig("tables.journal").SafeWithFallback(Configuration.Config.Empty);
             ColumnNames= new JournalTableColumnNames(config);
             MetadataColumnNames = new MetadataTableColumnNames(config);
             TableName = localcfg.GetString("table-name", "journal");

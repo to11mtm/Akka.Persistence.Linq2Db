@@ -1,11 +1,10 @@
 ﻿using System;
-using Akka.Configuration;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
 {
     public class ReadJournalConfig
     {
-        public ReadJournalConfig(Config config)
+        public ReadJournalConfig(Configuration.Config config)
         {
             JournalTableConfiguration = new JournalTableConfiguration(config);
             JournalSequenceRetrievalConfiguration = new JournalSequenceRetrievalConfig(config);

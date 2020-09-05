@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Configuration;
 using Akka.Event;
 using Akka.Persistence.Journal;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util;
 using Akka.Util.Internal;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal
 {
     public class Linq2DbWriteJournal : AsyncWriteJournal
     {
@@ -21,7 +22,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         private JournalConfig _journalConfig;
         private ByteArrayJournalDao _journal;
 
-        public Linq2DbWriteJournal(Config config)
+        public Linq2DbWriteJournal(Configuration.Config config)
         {
             try
             {
@@ -86,15 +87,11 @@ namespace Akka.Persistence.Sql.Linq2Db
             base.AroundPreRestart(cause, message);
         }
 
-        public class ReplayCompletion
-        {
-            public IPersistentRepresentation repr { get; set; }
-            public long SequenceNr { get; set; }
-        }
+        
         public override async Task ReplayMessagesAsync(IActorContext context, string persistenceId,
             long fromSequenceNr, long toSequenceNr, long max, Action<IPersistentRepresentation> recoveryCallback)
         {
-            await _journal.MessagesWithBatchClass2(persistenceId, fromSequenceNr,
+            await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
                     toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
                     Option<(TimeSpan, SchedulerBase)>.None)
                 .Take(max).SelectAsync(1,

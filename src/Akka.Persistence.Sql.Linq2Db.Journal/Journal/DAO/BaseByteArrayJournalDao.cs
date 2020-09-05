@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Serialization;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using LanguageExt;
 using LinqToDB;
 using LinqToDB.Data;
 using static LanguageExt.Prelude;
-using Seq = LanguageExt.Seq;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO
 {
     public abstract class BaseByteArrayJournalDao :
         BaseJournalDaoWithReadMessages,
@@ -340,9 +339,11 @@ namespace Akka.Persistence.Sql.Linq2Db
             }
         }
 
+        
+
         public override
-            Source<Util.Try<Linq2DbWriteJournal.ReplayCompletion>, NotUsed>
-            MessagesClass(DataConnection db, string persistenceId,
+            Source<Util.Try<ReplayCompletion>, NotUsed>
+            Messages(DataConnection db, string persistenceId,
                 long fromSequenceNr, long toSequenceNr,
                 long max)
         {
@@ -373,8 +374,8 @@ namespace Akka.Persistence.Sql.Linq2Db
                         if (sertry.IsSuccess)
                         {
                             return new
-                                Util.Try<Linq2DbWriteJournal.ReplayCompletion>(
-                                    new Linq2DbWriteJournal.ReplayCompletion()
+                                Util.Try<ReplayCompletion>(
+                                    new ReplayCompletion()
                                     {
                                         repr = sertry.Success.Value.Item1,
                                         SequenceNr = sertry.Success.Value.Item3
@@ -383,51 +384,7 @@ namespace Akka.Persistence.Sql.Linq2Db
                         else
                         {
                             return new
-                                Util.Try<Linq2DbWriteJournal.ReplayCompletion>(
-                                    sertry.Failure.Value);
-                        }
-                    });
-            }
-        }
-
-        public override
-            Source<Util.Try<(IPersistentRepresentation, long)>, NotUsed>
-            Messages(DataConnection db, string persistenceId,
-                long fromSequenceNr, long toSequenceNr,
-                long max)
-        {
-
-            {
-                IQueryable<JournalRow> query = db.GetTable<JournalRow>()
-                    .Where(r =>
-                        r.persistenceId == persistenceId &&
-                        r.sequenceNumber >= fromSequenceNr &&
-                        r.sequenceNumber <= toSequenceNr && r.deleted==false)
-                    .OrderBy(r => r.sequenceNumber);
-                if (max <= int.MaxValue)
-                {
-                    query = query.Take((int) max);
-                }
-
-                //Source.From(query)
-                //query.ToListAsync()
-                //    .FromObservable(query.AsAsyncEnumerable().ToObservable())
-
-                return Source.From(query)
-                    .Via(
-                        Serializer.deserializeFlow()).Select(sertry =>
-                    {
-                        if (sertry.IsSuccess)
-                        {
-                            return new
-                                Util.Try<(IPersistentRepresentation, long)>((
-                                    sertry.Success.Value.Item1,
-                                    sertry.Success.Value.Item3));
-                        }
-                        else
-                        {
-                            return new
-                                Util.Try<(IPersistentRepresentation, long)>(
+                                Util.Try<ReplayCompletion>(
                                     sertry.Failure.Value);
                         }
                     });

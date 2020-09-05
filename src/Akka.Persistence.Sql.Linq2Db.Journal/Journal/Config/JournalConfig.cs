@@ -1,11 +1,8 @@
-﻿using Akka.Configuration;
-using LinqToDB.Mapping;
-
-namespace Akka.Persistence.Sql.Linq2Db
+﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
 {
     public class JournalConfig
     {
-        public JournalConfig(Config config)
+        public JournalConfig(Configuration.Config config)
         {
             ConnectionString = config.GetString("connection-string");
             ProviderName = config.GetString("provider-name");

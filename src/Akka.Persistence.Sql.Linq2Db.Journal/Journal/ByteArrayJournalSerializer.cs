@@ -2,12 +2,16 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Akka.Actor;
-using Akka.Configuration;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
 using Akka.Serialization;
 using Akka.Util;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal
 {
+    /// <summary>
+    /// Serializes <see cref="IPersistentRepresentation"/> 
+    /// </summary>
     public class ByteArrayJournalSerializer : FlowPersistentReprSerializer<JournalRow>
     {
         private Akka.Serialization.Serialization _serializer;

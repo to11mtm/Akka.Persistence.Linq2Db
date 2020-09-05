@@ -1,20 +1,7 @@
 ﻿using Akka.Configuration;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
 {
-    public class MetadataTableColumnNames
-    {
-        public string FallBack = @"tables.journal.metadata-column-names {
-}";
-        public MetadataTableColumnNames(Config config)
-        {
-            var cfg =  config.GetConfig("tables.journal.metadata-column-names").SafeWithFallback(ConfigurationFactory.ParseString(FallBack).GetConfig("tables.journal.metadata-column-names"));
-            PersistenceId =  cfg.GetString("persistenceId", "persistenceId");
-            SequenceNumber = cfg.GetString("sequenceNumber", "sequenceNr");
-            }
-        public string PersistenceId { get; }
-        public string SequenceNumber { get; }
-    }
     public class JournalTableColumnNames
     {
         public string FallBack = @"tables.journal
@@ -34,7 +21,7 @@ namespace Akka.Persistence.Sql.Linq2Db
  { 
  }
 }";
-        public JournalTableColumnNames(Config config)
+        public JournalTableColumnNames(Configuration.Config config)
         {
             var compat = config.GetBoolean("table-compatibility-mode", false);
             var cfg = config

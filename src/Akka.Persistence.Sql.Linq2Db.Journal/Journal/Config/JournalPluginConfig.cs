@@ -1,10 +1,8 @@
-﻿using Akka.Configuration;
-
-namespace Akka.Persistence.Sql.Linq2Db
+﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
 {
     public class JournalPluginConfig
     {
-        public JournalPluginConfig(Config config)
+        public JournalPluginConfig(Configuration.Config config)
         {
             TagSeparator = config.GetString("tag-separator", ",");
             //TODO: FILL IN SANELY

@@ -1,9 +1,11 @@
 ﻿using System;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal
 {
     public class AkkaPersistenceDataConnectionFactory
     {
@@ -16,6 +18,8 @@ namespace Akka.Persistence.Sql.Linq2Db
         {
             providerName = config.ProviderName;
             connString = config.ConnectionString;
+            
+            //Build Mapping Schema to be used for all connections.
             var fmb = new MappingSchema(MappingSchema.Default)
                 .GetFluentMappingBuilder();
             var journalRowBuilder = fmb.Entity<JournalRow>()
@@ -38,6 +42,9 @@ namespace Akka.Persistence.Sql.Linq2Db
                 .Member(r => r.sequenceNumber).HasColumnName(config
                     .TableConfiguration.ColumnNames.SequenceNumber)
                 .Member(r=>r.Timestamp).HasColumnName(config.TableConfiguration.ColumnNames.Created);
+            
+            //Probably overkill, but we only set Metadata Mapping if specified
+            //That we are in delete compatibility mode.
             if (config.DaoConfig.DeleteCompatibilityMode)
             {
                 fmb.Entity<JournalMetaData>().HasTableName(config.TableConfiguration.MetadataTableName)
@@ -68,8 +75,6 @@ namespace Akka.Persistence.Sql.Linq2Db
             {
                 return new DataConnection(opts);    
             }
-            
-            
         }
     }
 }

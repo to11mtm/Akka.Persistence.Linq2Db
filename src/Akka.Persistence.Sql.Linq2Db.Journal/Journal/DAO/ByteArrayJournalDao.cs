@@ -1,12 +1,11 @@
 ﻿using System;
 using Akka.Actor;
-using Akka.Configuration;
-using Akka.Persistence.Journal;
-using Akka.Serialization;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
 using Akka.Streams;
 using LinqToDB;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO
 {
     public class ByteArrayJournalDao : BaseByteArrayJournalDao
     {
