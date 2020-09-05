@@ -7,6 +7,7 @@ using Xunit.Abstractions;
 
 namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
+    /*
     public class
         PostgreSQLJournalSpec : Akka.Persistence.TCK.Journal.JournalSpec
     {
@@ -49,4 +50,5 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
         // TODO: hack. Replace when https://github.com/akkadotnet/akka.net/issues/3811
         protected override bool SupportsSerialization => false;
     }
+    */
 }

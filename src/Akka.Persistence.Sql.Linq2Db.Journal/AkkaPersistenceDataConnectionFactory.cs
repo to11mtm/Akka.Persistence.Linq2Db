@@ -1,9 +1,11 @@
 ﻿using System;
+using Akka.Persistence.Sql.Linq2Db.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal
 {
     public class AkkaPersistenceDataConnectionFactory
     {
@@ -16,34 +18,39 @@ namespace Akka.Persistence.Sql.Linq2Db
         {
             providerName = config.ProviderName;
             connString = config.ConnectionString;
+            
+            //Build Mapping Schema to be used for all connections.
             var fmb = new MappingSchema(MappingSchema.Default)
                 .GetFluentMappingBuilder();
             var journalRowBuilder = fmb.Entity<JournalRow>()
-                .HasSchemaName(config.TableConfiguration.SchemaName)
-                .HasTableName(config.TableConfiguration.TableName)
+                .HasSchemaName(config.TableConfig.SchemaName)
+                .HasTableName(config.TableConfig.TableName)
                 .Member(r => r.deleted).HasColumnName(config
-                    .TableConfiguration.ColumnNames.Deleted)
+                    .TableConfig.ColumnNames.Deleted)
                 .Member(r => r.manifest).HasColumnName(config
-                    .TableConfiguration.ColumnNames.Manifest).HasLength(500)
+                    .TableConfig.ColumnNames.Manifest).HasLength(500)
                 .Member(r => r.message).HasColumnName(config
-                    .TableConfiguration.ColumnNames.Message)
+                    .TableConfig.ColumnNames.Message)
                 .Member(r => r.ordering).HasColumnName(config
-                    .TableConfiguration.ColumnNames.Ordering)
+                    .TableConfig.ColumnNames.Ordering)
                 .Member(r => r.tags).HasLength(100)
-                .HasColumnName(config.TableConfiguration.ColumnNames.Tags)
+                .HasColumnName(config.TableConfig.ColumnNames.Tags)
                 .Member(r => r.Identifier).HasColumnName(config
-                    .TableConfiguration.ColumnNames.Identitifer)
+                    .TableConfig.ColumnNames.Identitifer)
                 .Member(r => r.persistenceId).HasColumnName(config
-                    .TableConfiguration.ColumnNames.PersistenceId).HasLength(255)
+                    .TableConfig.ColumnNames.PersistenceId).HasLength(255)
                 .Member(r => r.sequenceNumber).HasColumnName(config
-                    .TableConfiguration.ColumnNames.SequenceNumber)
-                .Member(r=>r.Timestamp).HasColumnName(config.TableConfiguration.ColumnNames.Created);
+                    .TableConfig.ColumnNames.SequenceNumber)
+                .Member(r=>r.Timestamp).HasColumnName(config.TableConfig.ColumnNames.Created);
+            
+            //Probably overkill, but we only set Metadata Mapping if specified
+            //That we are in delete compatibility mode.
             if (config.DaoConfig.DeleteCompatibilityMode)
             {
-                fmb.Entity<JournalMetaData>().HasTableName(config.TableConfiguration.MetadataTableName)
-                    .Member(r=>r.PersistenceId).HasColumnName(config.TableConfiguration.MetadataColumnNames.PersistenceId)
+                fmb.Entity<JournalMetaData>().HasTableName(config.TableConfig.MetadataTableName)
+                    .Member(r=>r.PersistenceId).HasColumnName(config.TableConfig.MetadataColumnNames.PersistenceId)
                     .HasLength(255)
-                    .Member(r=>r.SequenceNumber).HasColumnName(config.TableConfiguration.MetadataColumnNames.SequenceNumber)
+                    .Member(r=>r.SequenceNumber).HasColumnName(config.TableConfig.MetadataColumnNames.SequenceNumber)
                     ;
             }
 
@@ -68,8 +75,6 @@ namespace Akka.Persistence.Sql.Linq2Db
             {
                 return new DataConnection(opts);    
             }
-            
-            
         }
     }
 }

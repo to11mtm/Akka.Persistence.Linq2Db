@@ -1,4 +1,5 @@
 ﻿using Akka.Configuration;
+using Akka.Persistence.Sql.Linq2Db.Journal;
 
 namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
@@ -16,7 +17,7 @@ akka.persistence {{
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = """ + LinqToDB.ProviderName.SqlServer2017 + @"""
-                        parallelism = 3
+                        parallelism = 2
                         use-clone-connection = true
                         tables.journal {{ 
                            auto-init = true

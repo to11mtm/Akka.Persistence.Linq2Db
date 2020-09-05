@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Configuration;
 using Akka.Event;
 using Akka.Persistence.Journal;
+using Akka.Persistence.Sql.Linq2Db.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.DAO;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util;
 using Akka.Util.Internal;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal
 {
     public class Linq2DbWriteJournal : AsyncWriteJournal
     {
@@ -21,7 +22,7 @@ namespace Akka.Persistence.Sql.Linq2Db
         private JournalConfig _journalConfig;
         private ByteArrayJournalDao _journal;
 
-        public Linq2DbWriteJournal(Config config)
+        public Linq2DbWriteJournal(Configuration.Config config)
         {
             try
             {
@@ -46,7 +47,7 @@ namespace Akka.Persistence.Sql.Linq2Db
                     throw;
                 }
 
-                if (_journalConfig.TableConfiguration.AutoInitialize)
+                if (_journalConfig.TableConfig.AutoInitialize)
                 {
                     try
                     {
@@ -86,16 +87,24 @@ namespace Akka.Persistence.Sql.Linq2Db
             base.AroundPreRestart(cause, message);
         }
 
-        public class ReplayCompletion
-        {
-            public IPersistentRepresentation repr { get; set; }
-            public long SequenceNr { get; set; }
-        }
+        
         public override async Task ReplayMessagesAsync(IActorContext context, string persistenceId,
             long fromSequenceNr, long toSequenceNr, long max, Action<IPersistentRepresentation> recoveryCallback)
         {
-
             await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
+                    toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
+                    Option<(TimeSpan, SchedulerBase)>.None)
+                .Take(max).SelectAsync(1,
+                    t => t.IsSuccess
+                        ? Task.FromResult(t.Success.Value)
+                        : Task.FromException<ReplayCompletion>(
+                            t.Failure.Value))
+                .RunForeach(r =>
+                {
+                    recoveryCallback(r.repr);
+                }, _mat);
+
+            /*await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
                     toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
                     Option<(TimeSpan, SchedulerBase)>.None)
                 .Take(max).SelectAsync(1,
@@ -106,7 +115,7 @@ namespace Akka.Persistence.Sql.Linq2Db
                 .RunForeach(r =>
                 {
                     recoveryCallback(r.Item1);
-                }, _mat);
+                }, _mat);*/
         }
 
         public override async Task<long> ReadHighestSequenceNrAsync(string persistenceId, long fromSequenceNr)

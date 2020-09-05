@@ -1,10 +1,8 @@
-﻿using Akka.Configuration;
-
-namespace Akka.Persistence.Sql.Linq2Db
+﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
     public class ReadJournalPluginConfig
     {
-        public ReadJournalPluginConfig(Config config)
+        public ReadJournalPluginConfig(Configuration.Config config)
         {
             TagSeparator = config.GetString("tag-separator", ",");
             Dao = config.GetString("dao",

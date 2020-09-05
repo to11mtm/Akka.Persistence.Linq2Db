@@ -9,9 +9,9 @@ namespace Akka.Persistence.Sql.Linq2Db
     {
         public
             Flow<T, Try<(IPersistentRepresentation, IImmutableSet<string>, long)>
-                , NotUsed> deserializeFlow()
+                , NotUsed> DeserializeFlow()
         {
-            return Flow.Create<T, NotUsed>().Select(t => deserialize(t));
+            return Flow.Create<T, NotUsed>().Select(t => Deserialize(t));
             //.Select(t => );
 
         }

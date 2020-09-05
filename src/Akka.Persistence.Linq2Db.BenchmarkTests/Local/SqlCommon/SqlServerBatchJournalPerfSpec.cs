@@ -2,6 +2,7 @@
 using Akka.Configuration;
 using Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db;
 using Akka.Persistence.Sql.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.Sql.Linq2Db.Tests;
 using JetBrains.dotMemoryUnit;
 using LinqToDB;

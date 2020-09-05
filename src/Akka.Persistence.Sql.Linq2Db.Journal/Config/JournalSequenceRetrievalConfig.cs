@@ -1,11 +1,10 @@
 ﻿using System;
-using Akka.Configuration;
 
-namespace Akka.Persistence.Sql.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
     public class JournalSequenceRetrievalConfig
     {
-        public JournalSequenceRetrievalConfig(Config config)
+        public JournalSequenceRetrievalConfig(Configuration.Config config)
         {
             BatchSize = config.GetInt("journal-sequence-retrieval.batch-size",
                 10000);
@@ -32,7 +31,7 @@ namespace Akka.Persistence.Sql.Linq2Db
 
         public int BatchSize { get; set; }
 
-        public static JournalSequenceRetrievalConfig Apply(Config config)
+        public static JournalSequenceRetrievalConfig Apply(Configuration.Config config)
         {
             return new JournalSequenceRetrievalConfig(config);   
         }
