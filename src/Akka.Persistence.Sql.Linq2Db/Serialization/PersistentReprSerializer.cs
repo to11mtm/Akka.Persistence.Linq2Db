@@ -52,7 +52,7 @@ namespace Akka.Persistence.Sql.Linq2Db
             IImmutableSet<string> tTags);
 
         protected abstract Util.Try<(IPersistentRepresentation, IImmutableSet<string>, long)>
-            deserialize(
+            Deserialize(
                 T t);
     }
 }

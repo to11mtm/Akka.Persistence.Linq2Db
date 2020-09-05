@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
     public class ReadJournalConfig
     {
         public ReadJournalConfig(Configuration.Config config)
         {
-            JournalTableConfiguration = new JournalTableConfiguration(config);
+            JournalTableConfig = new JournalTableConfig(config);
             JournalSequenceRetrievalConfiguration = new JournalSequenceRetrievalConfig(config);
             PluginConfig = new ReadJournalPluginConfig(config);
             RefreshInterval = config.GetTimeSpan("refresh-interval",
@@ -29,7 +29,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
 
         public bool IncludeDeleted { get; set; }
 
-        public JournalTableConfiguration JournalTableConfiguration { get;
+        public JournalTableConfig JournalTableConfig { get;
             protected set;
         }
         

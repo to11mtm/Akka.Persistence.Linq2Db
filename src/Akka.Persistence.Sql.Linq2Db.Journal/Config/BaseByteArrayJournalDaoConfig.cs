@@ -1,6 +1,6 @@
 ﻿using LinqToDB.Data;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
     public class BaseByteArrayJournalDaoConfig
     {

@@ -2,14 +2,14 @@
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Pattern;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Streams;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Journal.Streams;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using LanguageExt;
 using LinqToDB.Data;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO
+namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
 {
     public abstract class BaseJournalDaoWithReadMessages : IJournalDaoWithReadMessages
     {

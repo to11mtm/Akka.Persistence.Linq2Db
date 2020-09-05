@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using LanguageExt;
@@ -14,7 +14,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using static LanguageExt.Prelude;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO
+namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
 {
     public abstract class BaseByteArrayJournalDao :
         BaseJournalDaoWithReadMessages,
@@ -369,7 +369,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO
                 
                 return Source.From(query.ToList())
                     .Via(
-                        Serializer.deserializeFlow()).Select(sertry =>
+                        Serializer.DeserializeFlow()).Select(sertry =>
                     {
                         if (sertry.IsSuccess)
                         {

@@ -2,7 +2,7 @@
 using Akka.Streams.Dsl;
 using LanguageExt;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Streams
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Streams
 {
     public static class ExtSeq
     {

@@ -1,4 +1,4 @@
-﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types
+﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Types
 {
     public class ReplayCompletion
     {

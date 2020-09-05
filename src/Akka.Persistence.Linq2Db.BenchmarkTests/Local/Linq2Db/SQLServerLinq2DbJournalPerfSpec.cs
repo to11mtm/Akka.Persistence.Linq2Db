@@ -1,9 +1,9 @@
 ﻿using System;
 using Akka.Configuration;
 using Akka.Persistence.Sql.Linq2Db;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Journal;
+using Akka.Persistence.Sql.Linq2Db.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.Sql.Linq2Db.Tests;
 using JetBrains.dotMemoryUnit;
 using LinqToDB;

@@ -1,6 +1,6 @@
 using Akka.Configuration;
 using Akka.Persistence.Sql.Linq2Db;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal;
+using Akka.Persistence.Sql.Linq2Db.Journal;
 using Akka.Persistence.Sql.Linq2Db.Tests;
 using LinqToDB.Reflection;
 

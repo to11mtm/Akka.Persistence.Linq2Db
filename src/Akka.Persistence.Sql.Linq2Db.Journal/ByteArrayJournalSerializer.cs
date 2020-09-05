@@ -2,12 +2,12 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Akka.Actor;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Serialization;
 using Akka.Util;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal
+namespace Akka.Persistence.Sql.Linq2Db.Journal
 {
     /// <summary>
     /// Serializes <see cref="IPersistentRepresentation"/> 
@@ -62,7 +62,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal
             });
         }
 
-        protected override Try<(IPersistentRepresentation, IImmutableSet<string>, long)> deserialize(JournalRow t)
+        protected override Try<(IPersistentRepresentation, IImmutableSet<string>, long)> Deserialize(JournalRow t)
         {
             return Try<(IPersistentRepresentation, IImmutableSet<string>, long)>.From(
                 () =>

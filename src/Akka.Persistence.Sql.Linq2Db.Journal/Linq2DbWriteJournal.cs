@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
 using Akka.Persistence.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO;
-using Akka.Persistence.Sql.Linq2Db.Journal.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Journal.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal.DAO;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util;
 using Akka.Util.Internal;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal
+namespace Akka.Persistence.Sql.Linq2Db.Journal
 {
     public class Linq2DbWriteJournal : AsyncWriteJournal
     {
@@ -47,7 +47,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal
                     throw;
                 }
 
-                if (_journalConfig.TableConfiguration.AutoInitialize)
+                if (_journalConfig.TableConfig.AutoInitialize)
                 {
                     try
                     {

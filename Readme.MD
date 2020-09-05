@@ -66,7 +66,7 @@ akka.persistence {
                 journal {
                     plugin = "akka.persistence.journal.testspec"
                     testspec {
-                        class = "Akka.Persistence.Sql.Linq2Db.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db"
+                        class = "Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db.Journal"
                         plugin-dispatcher = "akka.actor.default-dispatcher"
                         connection-string = "" # Connection String is Required! 
                         provider-name = "" # Provider name is required#

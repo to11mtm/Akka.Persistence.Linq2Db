@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
-namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.DAO
+namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
 {
     public interface IJournalDao : IJournalDaoWithReadMessages
     {

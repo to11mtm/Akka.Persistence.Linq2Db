@@ -1,4 +1,4 @@
-﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Journal.Config
+﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
     public class JournalConfig
     {
@@ -6,7 +6,7 @@
         {
             ConnectionString = config.GetString("connection-string");
             ProviderName = config.GetString("provider-name");
-            TableConfiguration = new JournalTableConfiguration(config);
+            TableConfig = new JournalTableConfig(config);
             PluginConfig = new JournalPluginConfig(config);
             DaoConfig = new BaseByteArrayJournalDaoConfig(config);
             var dbConf = config.GetString(ConfigKeys.useSharedDb);
@@ -21,7 +21,7 @@
 
         public JournalPluginConfig PluginConfig { get; protected set; }
 
-        public JournalTableConfiguration TableConfiguration { get;
+        public JournalTableConfig TableConfig { get;
             protected set;
         }
 
