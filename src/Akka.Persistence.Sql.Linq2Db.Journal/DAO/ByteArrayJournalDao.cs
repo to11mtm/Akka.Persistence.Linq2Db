@@ -1,5 +1,6 @@
 ﻿using System;
 using Akka.Actor;
+using Akka.Event;
 using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Streams;
@@ -12,10 +13,10 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
         public ByteArrayJournalDao(IAdvancedScheduler sched, IMaterializer mat,
             AkkaPersistenceDataConnectionFactory connection,
             JournalConfig journalConfig,
-            Akka.Serialization.Serialization serializer) : base(sched, mat,
+            Akka.Serialization.Serialization serializer, ILoggingAdapter logger) : base(sched, mat,
             connection, journalConfig,
             new ByteArrayJournalSerializer(journalConfig, serializer,
-                journalConfig.PluginConfig.TagSeparator))
+                journalConfig.PluginConfig.TagSeparator),logger)
         {
         }
 

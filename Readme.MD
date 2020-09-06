@@ -117,7 +117,7 @@ akka.persistence {
       
       # If True, Deletes are done by updating Journal records
       # Rather than actual physical deletions
-      logical-delete = true
+      logical-delete = false
 
       # If true, journal_metadata is created
       delete-compatibility-mode = true 

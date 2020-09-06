@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Event;
 using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Streams;
@@ -31,13 +32,15 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                 LazyThreadSafetyMode.None);
 
         public bool logicalDelete;
+        private ILoggingAdapter _logger;
 
         protected BaseByteArrayJournalDao(IAdvancedScheduler sched,
             IMaterializer materializerr,
             AkkaPersistenceDataConnectionFactory connectionFactory,
-            JournalConfig config, ByteArrayJournalSerializer serializer) : base(
+            JournalConfig config, ByteArrayJournalSerializer serializer, ILoggingAdapter logger) : base(
             sched, materializerr, connectionFactory)
         {
+            _logger = logger;
             _journalConfig = config;
             logicalDelete = _journalConfig.DaoConfig.LogicalDelete;
             useCompatibleDelete =
@@ -207,12 +210,15 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                     var transaction =await db.BeginTransactionAsync();
                     try
                     {
-                        await db.GetTable<JournalRow>()
+                        db.GetTable<JournalRow>()
                             .Where(r =>
                                 r.persistenceId == persistenceId &&
                                 (r.sequenceNumber <= maxSequenceNr))
                             .Set(r => r.deleted, true)
-                            .UpdateAsync();
+                            .Update();
+                        var maxMarkedDeletion =
+                            MaxMarkedForDeletionMaxPersistenceIdQuery(db,
+                                persistenceId).FirstOrDefault();
                         if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
                         {
                             await db.GetTable<JournalMetaData>()
@@ -220,43 +226,50 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                                 {
                                     PersistenceId = persistenceId,
                                     SequenceNumber =
-                                        MaxMarkedForDeletionMaxPersistenceIdQuery(
-                                            persistenceId).FirstOrDefault()
+                                        maxMarkedDeletion
                                 });
                         }
 
                         if (logicalDelete == false)
                         {
-                            await db.GetTable<JournalRow>()
+                            db.GetTable<JournalRow>()
                                 .Where(r =>
                                     r.persistenceId == persistenceId &&
                                     (r.sequenceNumber <= maxSequenceNr &&
                                      r.sequenceNumber <
-                                     MaxMarkedForDeletionMaxPersistenceIdQuery(
-                                             persistenceId)
-                                         .FirstOrDefault())).DeleteAsync();
+                                     maxMarkedDeletion
+                                         )).Delete();
                         }
 
                         if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
                         {
-                            await db.GetTable<JournalMetaData>()
+                            db.GetTable<JournalMetaData>()
                                 .Where(r =>
                                     r.PersistenceId == persistenceId &&
                                     r.SequenceNumber <
-                                    MaxMarkedForDeletionMaxPersistenceIdQuery(
-                                        persistenceId).FirstOrDefault())
-                                .DeleteAsync();
+                                    maxMarkedDeletion)
+                                .Delete();
                         }
 
                         await transaction.CommitAsync();
                     }
                     catch (Exception ex)
                     {
+                        _logger.Error(ex,"Error on delete!");
                         await transaction.RollbackAsync();
                         throw;
                     }
                 }
             }
+        }
+        
+        protected IQueryable<long> MaxMarkedForDeletionMaxPersistenceIdQuery(DataConnection connection,
+            string persistenceId)
+        {
+            return connection.GetTable<JournalRow>()
+                    .Where(r => r.persistenceId == persistenceId && r.deleted)
+                    .OrderByDescending(r => r.sequenceNumber)
+                    .Select(r => r.sequenceNumber).Take(1);
         }
 
         protected IQueryable<long> MaxMarkedForDeletionMaxPersistenceIdQuery(

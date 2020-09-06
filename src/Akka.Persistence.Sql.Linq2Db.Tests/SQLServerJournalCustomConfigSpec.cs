@@ -14,10 +14,10 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
 
         private static readonly Config conf =
             Linq2DbJournalDefaultSpecConfig.GetCustomConfig("customspec",
-                "defaultjournalSpec", "defaultjournalmetadata",
+                "customjournalSpec", "customjournalmetadata",
                 ProviderName.SqlServer2017, ConnectionString.Instance, true);
-        public SQLServerJournalCustomConfigSpec(ITestOutputHelper output)
-            : base(conf, "SQLServer", output)
+        public SQLServerJournalCustomConfigSpec(ITestOutputHelper outputHelper)
+            : base(conf, "SQLServer-custom", outputHelper)
         {
             var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(conf.GetConfig("akka.persistence.journal.linq2db.customspec")));
             using (var conn = connFactory.GetConnection())

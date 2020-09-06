@@ -11,7 +11,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
             BatchSize = config.GetInt("batch-size", 100);
             ReplayBatchSize = config.GetInt("replay-batch-size", 1000);
             Parallelism = config.GetInt("parallelism", 2);
-            LogicalDelete = config.GetBoolean("logical-delete", true);
+            LogicalDelete = config.GetBoolean("logical-delete", false);
             MaxRowByRowSize = config.GetInt("max-row-by-row-size", 100);
             DeleteCompatibilityMode =
                 config.GetBoolean("delete-compatibility-mode", true);

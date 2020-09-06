@@ -26,7 +26,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
         private ActorMaterializer _mat;
         private JournalConfig _journalConfig;
         private ByteArrayJournalDao _journal;
-
         public Linq2DbWriteJournal(Configuration.Config config)
         {
             try
@@ -44,7 +43,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
                         Context.System.Scheduler.Advanced, _mat,
                         new AkkaPersistenceDataConnectionFactory(
                             _journalConfig),
-                        _journalConfig, Context.System.Serialization);
+                        _journalConfig, Context.System.Serialization, Context.GetLogger());
                 }
                 catch (Exception e)
                 {
@@ -140,8 +139,9 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
         {
             //TODO: CurrentTimeMillis;
-            var future = _journal.AsyncWriteMessages(messages);
             var persistenceId = messages.Head().PersistenceId;
+            var future = _journal.AsyncWriteMessages(messages);
+            
             writeInProgress.AddOrSet(persistenceId, future);
             var self = Self;
 
@@ -154,9 +154,9 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
 
         }
 
-        protected override Task DeleteMessagesToAsync(string persistenceId, long toSequenceNr)
+        protected override async Task DeleteMessagesToAsync(string persistenceId, long toSequenceNr)
         {
-            return _journal.Delete(persistenceId, toSequenceNr);
+            await _journal.Delete(persistenceId, toSequenceNr);
         }
     }
 }

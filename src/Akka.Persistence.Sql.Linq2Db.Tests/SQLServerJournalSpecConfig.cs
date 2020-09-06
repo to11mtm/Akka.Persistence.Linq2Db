@@ -9,8 +9,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
 akka.persistence {{
                 publish-plugin-commands = on
                 journal {{
-                    plugin = ""akka.persistence.journal.testspec""
-                    testspec {{
+                    plugin = ""akka.persistence.journal.linq2db""
+                    linq2db {{
                         class = ""{0}""
                         plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
 #plugin-dispatcher = ""akka.actor.default-dispatcher""

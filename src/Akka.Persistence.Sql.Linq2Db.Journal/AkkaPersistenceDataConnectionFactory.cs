@@ -1,6 +1,7 @@
 ﻿using System;
 using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
+using Akka.Util;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
@@ -20,7 +21,11 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             connString = config.ConnectionString;
             
             //Build Mapping Schema to be used for all connections.
-            var fmb = new MappingSchema(MappingSchema.Default)
+            //Make a unique mapping schema name here to avoid problems
+            //with multiple configurations using different schemas.
+            var configName = "akka.persistence.l2db." + MurmurHash
+                .ByteHash(Guid.NewGuid().ToByteArray()).ToString();
+            var fmb = new MappingSchema(configName,MappingSchema.Default)
                 .GetFluentMappingBuilder();
             var journalRowBuilder = fmb.Entity<JournalRow>()
                 .HasSchemaName(config.TableConfig.SchemaName)

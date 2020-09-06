@@ -13,8 +13,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
     {
 
         private static readonly  Config conf = SQLServerJournalSpecConfig.Create(ConnectionString.Instance,"journalSpec");
-        public SQLServerJournalSpec(ITestOutputHelper output)
-            : base(conf, "SQLServer", output)
+        public SQLServerJournalSpec(ITestOutputHelper outputHelper)
+            : base(conf, "SQLServer", outputHelper)
         {
             var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(conf.GetConfig("akka.persistence.journal.testspec")));
             using (var conn = connFactory.GetConnection())
