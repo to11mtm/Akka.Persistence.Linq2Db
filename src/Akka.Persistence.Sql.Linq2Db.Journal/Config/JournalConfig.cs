@@ -13,6 +13,7 @@
             UseSharedDb = string.IsNullOrWhiteSpace(dbConf) ? null : dbConf;
             UseCloneConnection =
                 config.GetBoolean("use-clone-connection", false);
+            
         }
 
         public string UseSharedDb { get; protected set; }

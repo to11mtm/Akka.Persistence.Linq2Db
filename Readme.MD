@@ -1,6 +1,6 @@
 # Akka.Persistence.Linq2Db
 
-A Cross-SQL-DBA Akka.Persistence plugin with broad database compatibility thanks to Linq2Db.
+A Cross-SQL-DB Engine Akka.Persistence plugin with broad database compatibility thanks to Linq2Db.
 
 This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Scala to C#. 
 
@@ -9,34 +9,71 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
 
  **Pull Requests are Welcome** but please note this is still considered 'work in progress' and only used if one understands the risks. While the TCK Specs pass you should still test in a 'safe' non-production environment carefully before deciding to fully deploy.
  
- Additionally, at this time there is no migration or backward compatibility with past Akka.Persistence SQL providers. The columns themselves should be a good 'fit' with the existing designs for SQLite/SQLServer but full compatibility should not be considered a guarantee (particularly in SQLite due to possible differences in how data is stored). 
+ Working:
+ 
+   - Persistence
+   - Recovery
+ 
 
-## Advantages over `Akka.Contrib.Persistence.Sql.Common` Implementations:
+## Features/Architecture:
 
  - Akka.Streams used aggressively for tune-able blocking overhead.
+   - Up to `parallelism` writers write pushed messages
+   - While writers are busy, messages are buffered into batches
+   - Batches are flushed to Database
+     - For most DBs this will be done in a single built Multi-row-insert statement
  
  - Linq2Db usage for easier swapping of backend DBs.
+   - `provider-name` is a `LinqToDb.ProviderName`
+     - This handles DB Type mapping and Dialect-specific query building
+ 
+ 
 
 ## Currently Implemented:
 
 - Journal
-  - With `JournalSpec` and `JournalPerfSpec` passing for MS SQL Server and Microsoft.Data.SQLite
+  - With `JournalSpec` and `JournalPerfSpec` passing for MS SQL Server, Microsoft.Data.SQLite, and Postgres 
 - Configuration
-  - No unit tests yet.
-  - Still Lacking Default Configs.
+  - Only Functional tests at this time.
+  - Custom provider configurations are supported.
 
 ## Incomplete:
 
+- Tests for Schema Usage
+- Fine tuning of multirow/bulk numbers for linq2db
 - SnapshotStore
 - Journal Queries (i.e. Tag queries. Tags are properly persisted at this time.)
+- Cleanup of Configuration classes/fallbacks.
+  - Should still be usable in most common scenarios including multiple configuration instances: see `SqlServerCustomConfigSpec` for test and examples.
+
+ DB Compatibility:
  
-## Configuration Samples:
+  - SQL Server: Tests Pass
+  - MS SQLite: Tests Pass
+  - System.Data.SQLite: Functional tests pass, perf tests partially fail. 
+   - For whatever reason SDS doesn't cope well here.
+  - Postgres: Tests pass (Commented out for now)
+  - MySql: Not Tested Yet 
+  - Firebird: Not Tested Yet
+  
+ 
+ Compatibility with existing Providers is partially implemented via `table-compatibility-mode` flag. Please note there are not tests for compatibility with Sql.Common Query journals at this time:
+ 
+  - SQL Server: Basic Persist and Recovery tests pass.
+    - Still needs Delete tests
+  - SQLite: Not tested yet
+  - Postgres: Not Implemented yet. 
+    - There may be challenges in implementing JSON/JSONB Storage compatibility.
+  - MySql: Not Implemented yet  
+
+ 
+## Configuration:
 
 ### Journal:
 
 Please note that you -must- provide a Connection String and Provider name.
 
- - Refer to the Members of `Linq2Db.ProviderName` for included providers.
+ - Refer to the Members of `LinqToDb.ProviderName` for included providers.
    - Note: For best performance, one should use the most specific provider name possible. i.e. `LinqToDB.ProviderName.SqlServer2012` instead of `LinqToDB.ProviderName.SqlServer`. Otherwise certain provider detections have to run more frequently which may impair performance slightly. 
 
  - `parallelism` controls the number of Akka.Streams Queues used to write to the DB.
@@ -60,65 +97,131 @@ Please note that you -must- provide a Connection String and Provider name.
    - The 'created/timestamp' column is not actually used. Because of the nature of batched writes (and lack of guidance from jdbc library, feature appears to not be implemented there) we always use 0.
      - The column was kept to maximize compatibility with Existing SQL Journals.
 
-```
+```hocon
 akka.persistence {
-                publish-plugin-commands = on
-                journal {
-                    plugin = "akka.persistence.journal.testspec"
-                    testspec {
-                        class = "Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db.Journal"
-                        plugin-dispatcher = "akka.actor.default-dispatcher"
-                        connection-string = "" # Connection String is Required! 
-                        provider-name = "" # Provider name is required#
-                        delete-compatibility-mode = true # If true, journal_metadata is created
+  publish-plugin-commands = on
+  journal {
+    plugin = "akka.persistence.journal.linq2db"
+    linq2db {
+      class = "Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db.Journal"
+      plugin-dispatcher = "akka.persistence.dispatchers.default-plugin-dispatcher"
+      connection-string = "" # Connection String is Required!
 
-                        # If true, default column names are compatible with
-                        # Akka.Persistence.Sql Default Column names.                       
-                        table-compatibility-mode = false 
-                        
-  
-                        parallelism = 3 # Number of Concurrent Writers
+      # Provider name is required.
+      # Refer to LinqToDb.ProviderName for values
+      # Always use a specific version if possible
+      # To avoid provider detection performance penalty
+      # Don't worry if your DB is newer than what is listed;
+      # Just pick the newest one (if yours is still newer)
+      provider-name = "" 
+      
+      # If True, Deletes are done by updating Journal records
+      # Rather than actual physical deletions
+      logical-delete = true
 
-                        tables.journal { 
-                                
-                                #if delete-compatibility-mode is true, both tables are created
-                                #if false, only journal table will be created.
-                                auto-init = true
- 
-                                table-name = "journal"
-                                metadata-table-name = "journal_metadata"
-                                
-                                #If you want to specify a schema for your tables, you can do so here.
-                                schema-name = null
+      # If true, journal_metadata is created
+      delete-compatibility-mode = true 
 
-                                #Only set to TRUE if unit tests pass with the connection string you intend to use!
-                                use-clone-connection = false
+      # If "sqlite" or "sqlserver", and column names are compatible with
+      # Akka.Persistence.Sql Default Column names.
+      # You still -MUST- Set your appropriate table names!                       
+      table-compatibility-mode = null
 
-                                #Note COMPAT: denotes value to be used for compatibility
-                                column-names {
-                                       "ordering" = "ordering"
-                                       "deleted" = "deleted"  #COMPAT: "isdeleted"
-                                       "persistenceId" = "persistenceId"
-                                       "sequenceNumber" = "sequenceNumber" #COMPAT: "sequenceNr"
-                                       "created" = "created" #COMPAT:"Timestamp"
-                                       "tags" = "tags"
-                                       "message" = "message"
-                                       "identifier" = "identifier" #COMPAT: "serializerid"
-                                       "manifest" = "manifest"
-                                      }
-                                compat-column-names {
-                                       "ordering" = "ordering"
-                                       "deleted" = "isdeleted"
-                                       "persistenceId" = "persistenceId"
-                                       "sequenceNumber" = "sequenceNr"
-                                       "created" = "Timestamp"
-                                       "tags" = "tags"
-                                       "message" = "message"
-                                       "identifier" = "serializerid"
-                                       "manifest" = "manifest"
-                                }
-                               }
-                    }
-                }
-            }
+      #If more entries than this are pending, writes will be rejected.
+      #This setting is higher than JDBC because smaller batch sizes
+      #Work better in testing and we want to add more buffer to make up
+      #For that penalty. 
+      buffer-size = 5000
+
+      #Batch size refers to the number of items included in a batch to DB
+      #JDBC Default is/was 400 but testing against scenarios indicates
+      #100 is better for overall latency. That said,
+      #larger batches may be better if you have A fast/local DB.
+      batch-size = 100
+
+      # Denotes the number of messages retrieved
+      # Per round-trip to DB on recovery.
+      # This is to limit both size of dataset from DB (possibly lowering locking requirements)
+      # As well as limit memory usage on journal retrieval in CLR
+      replay-batch-size = 1000
+
+      # Number of Concurrennt writers.
+      # On larger servers with more cores you can increase this number
+      # But in most cases 2-4 is a safe bet. 
+      parallelism = 3
+      
+      #If a batch is larger than this number,
+      #Plugin will utilize Linq2db's
+      #Default bulk copy rather than row-by-row.
+      #Currently this setting only really has an impact on
+      #SQL Server and IBM Informix (If someone decides to test that out)
+      #SQL Server testing indicates that under this number of rows, (or thereabouts,)
+      #MultiRow is faster than Row-By-Row.
+      max-row-by-row-size = 100
+      
+      #Only set to TRUE if unit tests pass with the connection string you intend to use!
+      #This setting will go away once https://github.com/linq2db/linq2db/issues/2466 is resolved
+      use-clone-connection = false
+      
+      tables.journal {
+
+        #if delete-compatibility-mode is true, both tables are created
+        #if delete-compatibility-mode is false, only journal table will be created.
+        auto-init = true
+
+        #
+        table-name = "journal"
+        metadata-table-name = "journal_metadata"
+        
+        #If you want to specify a schema for your tables, you can do so here.
+        schema-name = null
+        
+
+        
+        column-names {
+          "ordering" = "ordering"
+          "deleted" = "deleted"  
+          "persistenceId" = "persistence_id"
+          "sequenceNumber" = "sequence_number" 
+          "created" = "created" 
+          "tags" = "tags"
+          "message" = "message"
+          "identifier" = "identifier" 
+          "manifest" = "manifest"
+        }
+        sqlserver-compat-column-names {
+          "ordering" = "ordering"
+          "deleted" = "isdeleted"
+          "persistenceId" = "persistenceId"
+          "sequenceNumber" = "sequenceNr"
+          "created" = "Timestamp"
+          "tags" = "tags"
+          "message" = "payload"
+          "identifier" = "serializerid"
+          "manifest" = "manifest"
+        }
+        sqlite-compat-column-names {
+          "ordering" = "ordering"
+          "deleted" = "is_deleted"
+          "persistenceId" = "persistence_Id"
+          "sequenceNumber" = "sequence_nr"
+          "created" = "Timestamp"
+          "tags" = "tags"
+          "message" = "payload"
+          "identifier" = "serializer_id"
+          "manifest" = "manifest"
+        }
+        metadata-column-names {
+          "persistenceId" = "persistenceId"
+          "sequenceNumber" = "sequenceNr"
+        }
+        sqlite-compat-metadata-column-names {
+          "persistenceId" = "persistence_Id"
+          "sequenceNumber" = "sequence_nr"
+        }
+      }
+    }
+  }
+}
+
 ```

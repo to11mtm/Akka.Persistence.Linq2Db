@@ -1,4 +1,5 @@
-﻿using Akka.Configuration;
+﻿using System;
+using Akka.Configuration;
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
@@ -6,36 +7,51 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
     {
         public string FallBack = @"tables.journal
   { 
-    compat-column-names {
-                ""ordering"" = ""ordering""
-            ""deleted"" = ""isdeleted""
-            ""persistenceId"" = ""persistenceId""
-            ""sequenceNumber"" = ""sequenceNr""
-            ""created"" = ""timestamp""
-            ""tags"" = ""tags""
-            ""message"" = ""payload""
-            ""identifier"" = ""serializerid""
-            ""manifest"" = ""manifest""
-}
+    sqlserver-compat-column-names {
+          ""ordering"" = ""ordering""
+        ""deleted"" = ""isdeleted""
+        ""persistenceId"" = ""persistenceId""
+        ""sequenceNumber"" = ""sequenceNr""
+        ""created"" = ""Timestamp""
+        ""tags"" = ""tags""
+        ""message"" = ""payload""
+        ""identifier"" = ""serializerid""
+        ""manifest"" = ""manifest""
+    }
+    sqlite-compat-column-names {
+    ""ordering"" = ""ordering""
+    ""deleted"" = ""is_deleted""
+    ""persistenceId"" = ""persistence_Id""
+    ""sequenceNumber"" = ""sequence_nr""
+    ""created"" = ""Timestamp""
+    ""tags"" = ""tags""
+    ""message"" = ""payload""
+    ""identifier"" = ""serializer_id""
+    ""manifest"" = ""manifest""
+    }
  column-names
  { 
  }
 }";
         public JournalTableColumnNames(Configuration.Config config)
         {
-            var compat = config.GetBoolean("table-compatibility-mode", false);
+            var compat = config.GetString("table-compatibility-mode", "")??"";
+            string colString;
+            colString = compat.Equals("sqlserver",
+                StringComparison.InvariantCultureIgnoreCase)
+                ? "sqlserver-compat-column-names"
+                : compat.Equals("sqlite",
+                    StringComparison.InvariantCultureIgnoreCase)
+                    ? "sqlite-compat-column-names"
+                    : "column-names";
             var cfg = config
-                .GetConfig(compat
-                    ? "tables.journal.compat-column-names"
-                    : "tables.journal.column-names").SafeWithFallback(
-                    ConfigurationFactory.ParseString(FallBack).GetConfig(compat
-                        ? "tables.journal.compat-column-names"
-                        : "tables.journal.column-names"));
+                .GetConfig($"tables.journal.{colString}").SafeWithFallback(
+                    ConfigurationFactory.ParseString(FallBack).GetConfig($"tables.journal.{colString}"));
             Ordering =       cfg.GetString("ordering","ordering");
             Deleted =        cfg.GetString("deleted","deleted");
             PersistenceId =  cfg.GetString("persistenceId", "persistence_id");
             SequenceNumber = cfg.GetString("sequenceNumber", "sequence_number");
-            Created =        cfg.GetString("created", "timestamp");
+            Created =        cfg.GetString("created", "created");
             Tags =           cfg.GetString("tags", "tags");
             Message =        cfg.GetString("message", "message");
             Identitifer =    cfg.GetString("identifier", "identifier");

@@ -1,4 +1,5 @@
 ﻿using System.Data.SqlClient;
+using Npgsql;
 
 namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker
 {

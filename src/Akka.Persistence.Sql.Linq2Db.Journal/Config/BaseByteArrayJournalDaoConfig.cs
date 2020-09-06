@@ -7,8 +7,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
         public BaseByteArrayJournalDaoConfig(Configuration.Config config)
         {
             
-            BufferSize = config.GetInt("buffer-size", 1000);
-            BatchSize = config.GetInt("batch-size", 2000);
+            BufferSize = config.GetInt("buffer-size", 5000);
+            BatchSize = config.GetInt("batch-size", 100);
             ReplayBatchSize = config.GetInt("replay-batch-size", 1000);
             Parallelism = config.GetInt("parallelism", 2);
             LogicalDelete = config.GetBoolean("logical-delete", true);

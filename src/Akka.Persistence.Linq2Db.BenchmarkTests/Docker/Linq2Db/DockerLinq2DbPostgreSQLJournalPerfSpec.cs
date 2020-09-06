@@ -1,19 +1,16 @@
 ﻿using System;
 using Akka.Configuration;
-using Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db;
-using Akka.Persistence.Sql.Linq2Db;
 using Akka.Persistence.Sql.Linq2Db.Journal;
 using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
-using Akka.Persistence.Sql.Linq2Db.Tests;
 using LinqToDB;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.Linq2Db
 {
-    [Collection("SqlServerSpec")]
-    public class DockerLinq2DbSqlServerJournalPerfSpec : L2dbJournalPerfSpec
+    [Collection("PostgreSQLSpec")]
+    public class DockerLinq2DbPostgreSQLJournalPerfSpec : L2dbJournalPerfSpec
     {
         public static string _journalBaseConfig = @"
             akka.persistence {{
@@ -27,7 +24,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.Linq2Db
                                 
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
-                        provider-name = """ + LinqToDB.ProviderName.SqlServer2017 + @"""
+                        provider-name = """ + LinqToDB.ProviderName.PostgreSQL95 + @"""
                         use-clone-connection = true
                         tables.journal {{ 
                            auto-init = true
@@ -45,9 +42,9 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.Linq2Db
                     typeof(Linq2DbWriteJournal).AssemblyQualifiedName,
                     connString,"testPerfTable"));
         }
-        public DockerLinq2DbSqlServerJournalPerfSpec(ITestOutputHelper output,
-            SqlServerFixture fixture) : base(InitConfig(fixture),
-            "sqlserverperf", output,40, eventsCount: TestConstants.DockerNumMessages)
+        public DockerLinq2DbPostgreSQLJournalPerfSpec(ITestOutputHelper output,
+            PostgreSQLFixture fixture) : base(InitConfig(fixture),
+            "postgresperf", output,40, eventsCount: TestConstants.DockerNumMessages)
         {
             
             var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(Create(DockerDbUtils.ConnectionString).GetConfig("akka.persistence.journal.testspec")));
@@ -64,18 +61,18 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.Linq2Db
             }
         }
             
-        public static Config InitConfig(SqlServerFixture fixture)
+        public static Config InitConfig(PostgreSQLFixture fixture)
         {
             //need to make sure db is created before the tests start
-            DbUtils.Initialize(fixture.ConnectionString);
+            //DbUtils.Initialize(fixture.ConnectionString);
             
 
-            return Create(DbUtils.ConnectionString);
+            return Create(fixture.ConnectionString);
         }  
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            DbUtils.Clean();
+//            DbUtils.Clean();
         }
 
         [Fact]

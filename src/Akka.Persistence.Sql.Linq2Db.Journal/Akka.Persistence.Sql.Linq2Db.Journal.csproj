@@ -19,4 +19,11 @@
       <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db\Akka.Persistence.Sql.Linq2Db.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="reference.conf" />
+      <EmbeddedResource Include="reference.conf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>

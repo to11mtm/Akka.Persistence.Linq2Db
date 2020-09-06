@@ -35,7 +35,7 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = ""{LinqToDB.ProviderName.SqlServer2017}""
                         parallelism = 3
-                        table-compatibility-mode = true
+                        table-compatibility-mode = ""sqlserver""
                         tables.journal {{ 
                            auto-init = true
                            table-name = ""{tablename}"" 

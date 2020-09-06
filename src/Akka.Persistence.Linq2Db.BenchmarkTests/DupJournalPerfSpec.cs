@@ -306,7 +306,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
             RunGroupBenchmark(numGroup, numCommands);
         }
 
-        private void RunGroupBenchmark(int numGroup, int numCommands)
+        protected void RunGroupBenchmark(int numGroup, int numCommands)
         {
             var p1 = BenchActorNewProbeGroup("GroupPersistPid" + numGroup, numGroup,
                 numCommands);

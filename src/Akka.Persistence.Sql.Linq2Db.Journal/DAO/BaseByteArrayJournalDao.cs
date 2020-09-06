@@ -57,7 +57,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                         oldRows.TCS.Add(newRows.TCS);
                         oldRows.Rows = oldRows.Rows.Concat(newRows.Rows);
                         return oldRows; //.Concat(newRows.Item2).ToList());
-
                     }).SelectAsync(_journalConfig.DaoConfig.Parallelism,
                     async (promisesAndRows) =>
                     {

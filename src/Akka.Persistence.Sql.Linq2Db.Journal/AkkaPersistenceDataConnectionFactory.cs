@@ -48,6 +48,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             if (config.DaoConfig.DeleteCompatibilityMode)
             {
                 fmb.Entity<JournalMetaData>().HasTableName(config.TableConfig.MetadataTableName)
+                    .HasSchemaName(config.TableConfig.SchemaName)
                     .Member(r=>r.PersistenceId).HasColumnName(config.TableConfig.MetadataColumnNames.PersistenceId)
                     .HasLength(255)
                     .Member(r=>r.SequenceNumber).HasColumnName(config.TableConfig.MetadataColumnNames.SequenceNumber)

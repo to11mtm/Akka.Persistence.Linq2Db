@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Configuration;
 using Akka.Event;
 using Akka.Persistence.Journal;
 using Akka.Persistence.Sql.Linq2Db.Journal.Config;
@@ -18,6 +19,10 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
 {
     public class Linq2DbWriteJournal : AsyncWriteJournal
     {
+        public static Configuration.Config DefaultConfiguration =>
+            ConfigurationFactory.FromResource<Linq2DbWriteJournal>(
+                "Akka.Persistence.Sql.Linq2Db.Journal.reference.conf");
+        
         private ActorMaterializer _mat;
         private JournalConfig _journalConfig;
         private ByteArrayJournalDao _journal;
@@ -32,7 +37,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
                             "akka.stream.default-blocking-io-dispatcher"),
                     "l2dbWriteJournal"
                 );
-                _journalConfig = new JournalConfig(config);
+                _journalConfig = new JournalConfig(config.WithFallback(DefaultConfiguration));
                 try
                 {
                     _journal = new ByteArrayJournalDao(
