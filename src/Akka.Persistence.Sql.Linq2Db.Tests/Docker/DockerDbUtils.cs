@@ -1,7 +1,6 @@
 ﻿using System.Data.SqlClient;
-using Npgsql;
 
-namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker
+namespace Akka.Persistence.Sql.Linq2Db.Tests.Docker
 {
     public static class DockerDbUtils
     {

@@ -52,7 +52,7 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
   - MS SQLite: Tests Pass
   - System.Data.SQLite: Functional tests pass, perf tests partially fail. 
    - For whatever reason SDS doesn't cope well here.
-  - Postgres: Tests pass (Commented out for now)
+  - Postgres: Tests pass
   - MySql: Not Tested Yet 
   - Firebird: Not Tested Yet
   
@@ -62,8 +62,9 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
   - SQL Server: Basic Persist and Recovery tests pass.
     - Still needs Delete tests
   - SQLite: Not tested yet
-  - Postgres: Not Implemented yet. 
-    - There may be challenges in implementing JSON/JSONB Storage compatibility.
+  - Postgres: Basic Persist and Recovery tests pass. 
+    - Note that not all possible permutations of table names have been tested.
+      - i.e. there may be concerns around casing
   - MySql: Not Implemented yet  
 
  

@@ -1,7 +1,6 @@
-﻿using Akka.Persistence.Sql.Linq2Db.Tests.Docker;
-using Xunit;
+﻿using Xunit;
 
-namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.Linq2Db
+namespace Akka.Persistence.Sql.Linq2Db.Tests.Docker
 {
     [CollectionDefinition("PostgreSQLSpec")]
     public sealed class PostgreSQLSpecsFixture : ICollectionFixture<PostgreSQLFixture>

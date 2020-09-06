@@ -3,6 +3,7 @@ using Akka.Configuration;
 using Akka.Persistence.Sql.Linq2Db.Journal;
 using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Tests.Docker;
 using LinqToDB;
 using Xunit;
 using Xunit.Abstractions;

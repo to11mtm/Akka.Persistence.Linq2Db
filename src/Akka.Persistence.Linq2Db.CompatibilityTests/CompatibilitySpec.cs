@@ -5,10 +5,11 @@ using Akka.Event;
 using Akka.TestKit.Xunit2.Internals;
 using Xunit;
 using Xunit.Abstractions;
+using Config = Docker.DotNet.Models.Config;
 
 namespace Akka.Persistence.Linq2Db.CompatibilityTests
 {
-    public class CompatibilitySpec
+    public abstract class CompatibilitySpec
     {
         public CompatibilitySpec(ITestOutputHelper outputHelper)
         {
@@ -26,41 +27,44 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
                 logger.Tell(new InitializeLogger(system.EventStream));
             }
         }
+
+        protected abstract Configuration.Config Config { get; }
+
+        protected abstract string OldJournal { get; }
+        protected abstract string NewJournal { get; }
         [Fact]
-        public async Task Can_Recover_SqlServer_Journal()
+        public async Task Can_Recover_SqlCommon_Journal()
         {
             var sys1 = ActorSystem.Create("first",
-                SqlServerCompatibilitySpecConfig.InitConfig("journal_compat",
-                    "journal_metadata_compat"));
+                Config);
             InitializeLogger(sys1);
             var persistRef = sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.sql-server",
+                new PersistActor(OldJournal,
                     "p-1")), "test");
             var ourGuid = Guid.NewGuid();
             persistRef.Tell(new SomeEvent(){EventName = "rec-test", Guid = ourGuid, Number = 1});
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid}, TimeSpan.FromSeconds(5)).Result);
             await persistRef.GracefulStop(TimeSpan.FromSeconds(5));
             persistRef =  sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.testspec",
+                new PersistActor(NewJournal,
                     "p-1")), "test");
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid},TimeSpan.FromSeconds(5)).Result);
         }
         [Fact]
-        public async Task Can_Persist_SqlServer_Journal()
+        public async Task Can_Persist_SqlCommon_Journal()
         {
             var sys1 = ActorSystem.Create("first",
-                SqlServerCompatibilitySpecConfig.InitConfig("journal_compat",
-                    "journal_metadata_compat"));
+                Config);
             InitializeLogger(sys1);
             var persistRef = sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.sql-server",
+                new PersistActor(OldJournal,
                     "p-2")), "test");
             var ourGuid = Guid.NewGuid();
             persistRef.Tell(new SomeEvent(){EventName = "rec-test", Guid = ourGuid, Number = 1});
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid}, TimeSpan.FromSeconds(5)).Result);
             await persistRef.GracefulStop(TimeSpan.FromSeconds(5));
             persistRef =  sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.testspec",
+                new PersistActor(NewJournal,
                     "p-2")), "test");
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid},TimeSpan.FromSeconds(10)).Result);
             var ourSecondGuid = Guid.NewGuid();
@@ -69,40 +73,38 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
         }
         
         [Fact]
-        public async Task SQLServer_Journal_Can_Recover_L2Db_Journal()
+        public async Task SqlCommon_Journal_Can_Recover_L2Db_Journal()
         {
             var sys1 = ActorSystem.Create("first",
-                SqlServerCompatibilitySpecConfig.InitConfig("journal_compat",
-                    "journal_metadata_compat"));
+                Config);
             InitializeLogger(sys1);
             var persistRef = sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.testspec",
+                new PersistActor(NewJournal,
                     "p-3")), "test");
             var ourGuid = Guid.NewGuid();
             persistRef.Tell(new SomeEvent(){EventName = "rec-test", Guid = ourGuid, Number = 1});
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid}, TimeSpan.FromSeconds(5)).Result);
             await persistRef.GracefulStop(TimeSpan.FromSeconds(5));
             persistRef = sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.sql-server",
+                new PersistActor(OldJournal,
                     "p-3")), "test");
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid},TimeSpan.FromSeconds(5)).Result);
         }
         [Fact]
-        public async Task SQLServer_Journal_Can_Persist_L2db_Journal()
+        public async Task SqlCommon_Journal_Can_Persist_L2db_Journal()
         {
             var sys1 = ActorSystem.Create("first",
-                SqlServerCompatibilitySpecConfig.InitConfig("journal_compat",
-                    "journal_metadata_compat"));
+                Config);
             InitializeLogger(sys1);
             var persistRef = sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.testspec",
+                new PersistActor(NewJournal,
                     "p-4")), "test");
             var ourGuid = Guid.NewGuid();
             persistRef.Tell(new SomeEvent(){EventName = "rec-test", Guid = ourGuid, Number = 1});
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid}, TimeSpan.FromSeconds(5)).Result);
             await persistRef.GracefulStop(TimeSpan.FromSeconds(5));
             persistRef =  sys1.ActorOf(Props.Create(() =>
-                new PersistActor("akka.persistence.journal.sql-server",
+                new PersistActor(OldJournal,
                     "p-4")), "test");
             Assert.True(persistRef.Ask<bool>(new ContainsEvent(){Guid = ourGuid},TimeSpan.FromSeconds(10)).Result);
             var ourSecondGuid = Guid.NewGuid();

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Akka.Util;
@@ -9,7 +8,7 @@ using Docker.DotNet.Models;
 using Npgsql;
 using Xunit;
 
-namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker
+namespace Akka.Persistence.Sql.Linq2Db.Tests.Docker
 {
     /// <summary>
     ///     Fixture used to run SQL Server

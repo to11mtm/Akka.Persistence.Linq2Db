@@ -29,21 +29,41 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
     ""identifier"" = ""serializer_id""
     ""manifest"" = ""manifest""
     }
+postgres-compat-column-names {
+          ""ordering"" = ""ordering""
+        ""deleted"" = ""is_deleted""
+        ""persistenceId"" = ""persistence_id""
+        ""sequenceNumber"" = ""sequence_nr""
+        ""created"" = ""created_at""
+        ""tags"" = ""tags""
+        ""message"" = ""payload""
+        ""identifier"" = ""serializer_id""
+        ""manifest"" = ""manifest""
+    }
  column-names
  { 
  }
 }";
         public JournalTableColumnNames(Configuration.Config config)
         {
-            var compat = config.GetString("table-compatibility-mode", "")??"";
+            var compat = (config.GetString("table-compatibility-mode", "")??"").ToLower();
             string colString;
-            colString = compat.Equals("sqlserver",
-                StringComparison.InvariantCultureIgnoreCase)
-                ? "sqlserver-compat-column-names"
-                : compat.Equals("sqlite",
-                    StringComparison.InvariantCultureIgnoreCase)
-                    ? "sqlite-compat-column-names"
-                    : "column-names";
+            switch (compat)
+            {
+                case "sqlserver":
+                    colString = "sqlserver-compat-column-names";
+                    break;
+                case "sqlite":
+                    colString = "sqlite-compat-column-names";
+                    break;
+                case "postgres":
+                    colString = "postgres-compat-column-names";
+                    break;
+                default:
+                    colString = "column-names";
+                    break;
+            }
+            
             var cfg = config
                 .GetConfig($"tables.journal.{colString}").SafeWithFallback(
                     ConfigurationFactory.ParseString(FallBack).GetConfig($"tables.journal.{colString}"));

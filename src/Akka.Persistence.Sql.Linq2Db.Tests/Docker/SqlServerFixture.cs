@@ -8,7 +8,7 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using Xunit;
 
-namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker
+namespace Akka.Persistence.Sql.Linq2Db.Tests.Docker
 {
     /// <summary>
     ///     Fixture used to run SQL Server

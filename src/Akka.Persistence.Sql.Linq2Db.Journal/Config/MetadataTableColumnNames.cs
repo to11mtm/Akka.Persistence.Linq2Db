@@ -14,18 +14,30 @@ metadata-column-names {
     ""persistenceId"" = ""persistence_Id""
     ""sequenceNumber"" = ""sequence_nr""
     }
+postgres-compat-metadata-column-names {
+          ""persistenceId"" = ""persistence_id""
+        ""sequenceNumber"" = ""sequence_nr""
+    }
 }";
         public MetadataTableColumnNames(Configuration.Config config)
         {
-            var compat = config.GetString("table-compatibility-mode", "")??"";
+            var compat = (config.GetString("table-compatibility-mode", "")??"").ToLower();
             string colString;
-            colString = compat.Equals("sqlserver",
-                StringComparison.InvariantCultureIgnoreCase)
-                ? "metadata-column-names"
-                : compat.Equals("sqlite",
-                    StringComparison.InvariantCultureIgnoreCase)
-                    ? "sqlite-compat-metadata-column-names"
-                    : "metadata-column-names";
+            switch (compat)
+            {
+                case "sqlserver":
+                    colString = "sqlserver-compat-metadata-column-names";
+                    break;
+                case "sqlite":
+                    colString = "sqlite-compat-metadata-column-names";
+                    break;
+                case "postgres":
+                    colString = "postgres-compat-metadata-column-names";
+                    break;
+                default:
+                    colString = "metadata-column-names";
+                    break;
+            }
             var cfg = config
                 .GetConfig($"tables.journal.{colString}").SafeWithFallback(
                     ConfigurationFactory.ParseString(FallBack).GetConfig($"tables.journal.{colString}"));
