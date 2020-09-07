@@ -87,7 +87,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
 
         public override void AroundPreRestart(Exception cause, object message)
         {
-            Context.System.Log.Error(cause,"WAT");
+            Context.System.Log.Error(cause,
+                $"Linq2Db Journal Error on {message?.GetType().ToString() ?? "null"}");
             base.AroundPreRestart(cause, message);
         }
 

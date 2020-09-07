@@ -6,16 +6,20 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
     public class MetadataTableColumnNames
     {
         public string FallBack = @"tables.journal{
-metadata-column-names {
-          ""persistenceId"" = ""persistenceId""
+    metadata-column-names {
+        ""persistenceId"" = ""persistenceId""
+        ""sequenceNumber"" = ""sequenceNr""
+    }
+    sqlserver-compat-metadata-column-names {
+        ""persistenceId"" = ""persistenceId""
         ""sequenceNumber"" = ""sequenceNr""
     }
     sqlite-compat-metadata-column-names {
-    ""persistenceId"" = ""persistence_Id""
-    ""sequenceNumber"" = ""sequence_nr""
+        ""persistenceId"" = ""persistence_Id""
+        ""sequenceNumber"" = ""sequence_nr""
     }
-postgres-compat-metadata-column-names {
-          ""persistenceId"" = ""persistence_id""
+    postgres-compat-metadata-column-names {
+        ""persistenceId"" = ""persistence_id""
         ""sequenceNumber"" = ""sequence_nr""
     }
 }";

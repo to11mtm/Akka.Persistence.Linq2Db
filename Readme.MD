@@ -4,6 +4,11 @@ A Cross-SQL-DB Engine Akka.Persistence plugin with broad database compatibility 
 
 This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Scala to C#. 
 
+## Status
+
+ - Usable for basic Read/Writes
+ - Work required for `Akka.Persistence.Query`
+   - Hopefully compatible with existing Query journals.
 
 #### This is still a WORK IN PROGRESS
 
@@ -19,14 +24,19 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
 
  - Akka.Streams used aggressively for tune-able blocking overhead.
    - Up to `parallelism` writers write pushed messages
-   - While writers are busy, messages are buffered into batches
-   - Batches are flushed to Database
+   - While writers are busy, messages are buffered up to `buffer-size` entries
+   - Batches are flushed to Database at up to `batch-size`
      - For most DBs this will be done in a single built Multi-row-insert statement
+     - PersistAll groups larger than `batch-size` will still be done as a single contiguous write
  
  - Linq2Db usage for easier swapping of backend DBs.
    - `provider-name` is a `LinqToDb.ProviderName`
      - This handles DB Type mapping and Dialect-specific query building
  
+ - Recovery is also batched:
+   - Up to `replay-batch-size` messages are fetched at a time
+    - This is to both lower size of records fetched in single pass, as well as to prevent pulling too much data into memory at once.
+   - If more messages are to be recovered, additional passes will be made.
  
 
 ## Currently Implemented:
