@@ -2,7 +2,7 @@
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
-    public class BaseByteArrayJournalDaoConfig
+    public class BaseByteArrayJournalDaoConfig : IDaoConfig
     {
         public BaseByteArrayJournalDaoConfig(Configuration.Config config)
         {

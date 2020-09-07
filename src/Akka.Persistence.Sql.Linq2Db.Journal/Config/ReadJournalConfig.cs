@@ -2,11 +2,17 @@
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
-    public class ReadJournalConfig
+    public class ReadJournalConfig : IProviderConfig
     {
         public ReadJournalConfig(Configuration.Config config)
         {
-            JournalTableConfig = new JournalTableConfig(config);
+            ConnectionString = config.GetString("connection-string");
+            ProviderName = config.GetString("provider-name");
+            TableConfig = new JournalTableConfig(config);
+            DaoConfig = new BaseByteArrayJournalDaoConfig(config);
+            var dbConf = config.GetString(ConfigKeys.useSharedDb);
+            UseCloneConnection =
+                config.GetBoolean("use-clone-connection", false);
             JournalSequenceRetrievalConfiguration = new JournalSequenceRetrievalConfig(config);
             PluginConfig = new ReadJournalPluginConfig(config);
             RefreshInterval = config.GetTimeSpan("refresh-interval",
@@ -16,6 +22,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
             IncludeDeleted =
                 config.GetBoolean("include-logically-deleted", true);
         }
+
+        public BaseByteArrayJournalDaoConfig DaoConfig { get; set; }
 
         public int MaxBufferSize { get; set; }
 
@@ -29,9 +37,14 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 
         public bool IncludeDeleted { get; set; }
 
-        public JournalTableConfig JournalTableConfig { get;
-            protected set;
+        public string ProviderName { get; }
+        public string ConnectionString { get; }
+        public JournalTableConfig TableConfig { get; }
+        public IDaoConfig IDaoConfig
+        {
+            get { return DaoConfig; }
         }
-        
+        public bool UseCloneConnection { get; }
+        public string DefaultSerializer { get; set; }
     }
 }
