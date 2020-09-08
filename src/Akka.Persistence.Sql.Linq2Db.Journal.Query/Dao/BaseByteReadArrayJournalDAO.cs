@@ -8,34 +8,13 @@ using Akka.Persistence.Sql.Linq2Db.Journal.DAO;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Streams;
 using Akka.Streams.Dsl;
-using LanguageExt;
 using LinqToDB;
-using LinqToDB.Async;
 using LinqToDB.Data;
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
 {
-    public class EventsByTagResponseItem
-    {
-        public IPersistentRepresentation Repr { get; set; }
-        public ImmutableHashSet<string> Tags { get; set; }
-        public long SequenceNr { get; set; }
-    }
-    public interface IReadJournalDAO : IJournalDaoWithReadMessages
-    {
-        Source<string, NotUsed> allPersistenceIdsSource(long max);
-
-        Source<Util.Try<(IPersistentRepresentation, IImmutableSet<string>, long)>, NotUsed>
-            eventsByTag(string tag, long offset, long maxOffset, long max);
-
-        Source<long, NotUsed> journalSequence(long offset,
-            long limit);
-
-        Task<long> maxJournalSequence();
-    }
     public abstract class BaseByteReadArrayJournalDAO :BaseJournalDaoWithReadMessages , IReadJournalDAO
     {
-        private AkkaPersistenceDataConnectionFactory _connectionFactory;
         private bool includeDeleted;
         private ReadJournalConfig _readJournalConfig;
         private FlowPersistentReprSerializer<JournalRow> _serializer;
@@ -47,7 +26,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             FlowPersistentReprSerializer<JournalRow> serializer) : base(ec, mat,
             connectionFactory)
         {
-            _connectionFactory = connectionFactory;
             
             _readJournalConfig = readJournalConfig;
             includeDeleted = readJournalConfig.IncludeDeleted;
@@ -171,13 +149,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                 return await db.GetTable<JournalRow>()
                     .Select(r => r.ordering).FirstOrDefaultAsync();
             }
-        }
-    }
-
-    public class ByteArrayReadJournalDao : BaseByteReadArrayJournalDAO
-    {
-        public ByteArrayReadJournalDao(IAdvancedScheduler ec, IMaterializer mat, AkkaPersistenceDataConnectionFactory connectionFactory, ReadJournalConfig readJournalConfig, FlowPersistentReprSerializer<JournalRow> serializer) : base(ec, mat, connectionFactory, readJournalConfig, serializer)
-        {
         }
     }
 }
