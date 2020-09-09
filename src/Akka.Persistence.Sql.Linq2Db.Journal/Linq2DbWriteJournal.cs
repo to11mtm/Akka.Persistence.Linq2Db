@@ -98,7 +98,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
         {
             await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
                     toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
-                    Option<(TimeSpan, SchedulerBase)>.None)
+                    Option<(TimeSpan, IScheduler)>.None)
                 .Take(max).SelectAsync(1,
                     t => t.IsSuccess
                         ? Task.FromResult(t.Success.Value)
@@ -111,7 +111,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
 
             /*await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
                     toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
-                    Option<(TimeSpan, SchedulerBase)>.None)
+                    Option<(TimeSpan, IScheduler)>.None)
                 .Take(max).SelectAsync(1,
                     t => t.IsSuccess
                         ? Task.FromResult(t.Success.Value)

@@ -24,6 +24,10 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
         IEventsByTagQuery,
         ICurrentEventsByTagQuery
     {
+        public static string Identifier
+        {
+            get { return "akka.persistence.query.journal.linq2db"; }
+        }
         public static Configuration.Config DefaultConfiguration =>
             ConfigurationFactory.FromResource<Linq2DbReadJournal>(
                 "Akka.Persistence.Sql.Linq2Db.Journal.Query.reference.conf");
@@ -40,25 +44,29 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
         {
             this.system = system;
             writePluginId = config.GetString("write-plugin");
-            eventAdapters = Persistence.Instance.Get(system)
+            
+             system.RegisterExtension(Persistence.Instance);
+             //var persist = Persistence.Instance.CreateExtension(system);
+             var persist = Persistence.Instance.Get(system);
+            eventAdapters = persist
                 .AdaptersFor(writePluginId);
             readJournalConfig = new ReadJournalConfig(config);
             var connFact =new AkkaPersistenceDataConnectionFactory(readJournalConfig);
+            _mat = ActorMaterializer.Create(system,
+                ActorMaterializerSettings.Create(system), "l2db-query-mat"+configPath);
             readJournalDao = new ByteArrayReadJournalDao(
                 system.Scheduler.Advanced, _mat,
                 connFact, readJournalConfig,
                 new ByteArrayJournalSerializer(readJournalConfig,
                     system.Serialization,
                     readJournalConfig.PluginConfig.TagSeparator));
-            _mat = ActorMaterializer.Create(system,
-                ActorMaterializerSettings.Create(system), "l2db-query-mat"+configPath);
             journalSequenceActor= system.ActorOf(Props.Create(() => new JournalSequenceActor(readJournalDao
                     ,
                     readJournalConfig.JournalSequenceRetrievalConfiguration)),
                 readJournalConfig.TableConfig.TableName +
                 "akka-persistence-linq2db-sequence-actor");
-            delaySource = Source.Tick(readJournalConfig.RefreshInterval,
-                TimeSpan.FromSeconds(0), 0L).Take(1);
+            delaySource = Source.Tick(
+                TimeSpan.FromSeconds(0),readJournalConfig.RefreshInterval, 0L).Take(1);
         }
 
         public Source<string, NotUsed> CurrentPersistenceIds()
@@ -86,7 +94,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                         return xs;
                     }
 
-                    return (id)=> next(id);
+                    return next;
                 });
         }
 
@@ -105,19 +113,19 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             long toSequenceNr)
         {
             return eventsByPersistenceIdSource(persistenceId, fromSequenceNr,
-                toSequenceNr, Util.Option<(TimeSpan, SchedulerBase)>.None);
+                toSequenceNr, Util.Option<(TimeSpan, IScheduler)>.None);
         }
 
         public Source<EventEnvelope, NotUsed> EventsByPersistenceId(string persistenceId, long fromSequenceNr,
             long toSequenceNr)
         {
             return eventsByPersistenceIdSource(persistenceId, fromSequenceNr,
-                toSequenceNr, Util.Option<(TimeSpan, SchedulerBase)>.None);
+                toSequenceNr, new Util.Option<(TimeSpan, IScheduler)>((readJournalConfig.RefreshInterval,system.Scheduler)));
         }
 
         public Source<EventEnvelope, NotUsed> eventsByPersistenceIdSource(
             string persistenceId, long fromSequenceNr, long toSequenceNr,
-            Akka.Util.Option<(TimeSpan, SchedulerBase)> refreshInterval)
+            Akka.Util.Option<(TimeSpan, IScheduler)> refreshInterval)
         {
             var batchSize = readJournalConfig.MaxBufferSize;
             return readJournalDao.MessagesWithBatch(persistenceId, fromSequenceNr,

@@ -8,7 +8,14 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
         private string _configPath;
         private ExtendedActorSystem _system;
         private Configuration.Config _config;
-
+        
+        public Linq2DbReadJournalProvider(ExtendedActorSystem system,
+            Configuration.Config config)
+        {
+            _system = system;
+            _config = config;
+            _configPath = "linq2db";
+        }
         public Linq2DbReadJournalProvider(ExtendedActorSystem system,
             Configuration.Config config, string configPath)
         {

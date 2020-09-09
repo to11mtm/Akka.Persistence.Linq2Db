@@ -45,7 +45,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                 var maxTake = MaxTake(max);
                 return Source.From(baseQuery(db)
                     .Select(r=>r.persistenceId).Distinct()
-                    .Take(maxTake));
+                    .Take(maxTake).ToList());
             }
             
         }
@@ -74,12 +74,12 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             var maxTake = MaxTake(max);
             using (var conn = _connectionFactory.GetConnection())
             {
-                return Source.FromObservable(conn.GetTable<JournalRow>()
+                return Source.From(conn.GetTable<JournalRow>()
                         .Where(r => r.tags.Contains(tag))
                         .OrderBy(r => r.ordering)
                         .Where(r =>
                             r.ordering > offset && r.ordering <= maxOffset)
-                        .Take(maxTake).ToAsyncEnumerable().ToObservable())
+                        .Take(maxTake).ToList())
                     .Via(perfectlyMatchTag(tag, separator))
                     .Via(_serializer.DeserializeFlow());
 
@@ -108,7 +108,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                                         && r.sequenceNumber >= fromSequenceNr
                                         && r.sequenceNumber <= toSequenceNr)
                             .OrderBy(r => r.sequenceNumber)
-                            .Take(toTake)).Via(_serializer.DeserializeFlow())
+                            .Take(toTake).ToList()).Via(_serializer.DeserializeFlow())
                     .Select(
                         t =>
                         {
@@ -138,16 +138,16 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             {
                 return Source.From(conn.GetTable<JournalRow>()
                     .Where(r => r.ordering > offset).Select(r => r.ordering)
-                    .OrderBy(r=>r).Take(maxTake));
+                    .OrderBy(r=>r).Take(maxTake).ToList());
             }
         }
 
-        public async Task<long> maxJournalSequence()
+        public Task<long> maxJournalSequence()
         {
             using (var db = _connectionFactory.GetConnection())
             {
-                return await db.GetTable<JournalRow>()
-                    .Select(r => r.ordering).FirstOrDefaultAsync();
+                return Task.FromResult(db.GetTable<JournalRow>()
+                    .Select(r => r.ordering).FirstOrDefault());
             }
         }
     }

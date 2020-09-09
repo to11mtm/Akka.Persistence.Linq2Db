@@ -166,7 +166,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
 
         protected override bool Receive(object message)
         {
-            throw new NotImplementedException();
+            return receive(message);
         }
 
         protected override void PreStart()
