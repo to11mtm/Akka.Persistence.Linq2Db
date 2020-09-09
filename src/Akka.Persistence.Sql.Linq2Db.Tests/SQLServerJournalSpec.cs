@@ -16,7 +16,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
         public SQLServerJournalSpec(ITestOutputHelper outputHelper)
             : base(conf, "SQLServer", outputHelper)
         {
-            var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(conf.GetConfig("akka.persistence.journal.testspec")));
+            var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(conf.GetConfig("akka.persistence.journal.linq2db")));
             using (var conn = connFactory.GetConnection())
             {
                 try

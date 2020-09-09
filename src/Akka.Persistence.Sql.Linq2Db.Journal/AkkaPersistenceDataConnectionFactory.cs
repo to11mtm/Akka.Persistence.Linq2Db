@@ -4,6 +4,8 @@ using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Util;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
+using LinqToDB.Data.RetryPolicy;
+using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.Mapping;
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal
@@ -65,21 +67,29 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             opts = new LinqToDbConnectionOptionsBuilder()
                 .UseConnectionString(providerName, connString)
                 .UseMappingSchema(mappingSchema).Build();
+            
+            if (providerName.ToLower().StartsWith("sqlserver"))
+            {
+                policy = new SqlServerRetryPolicy();
+            }
             _cloneConnection = new Lazy<DataConnection>(()=>new DataConnection(opts));
         }
 
         private Lazy<DataConnection> _cloneConnection;
         private bool useCloneDataConnection;
+        private IRetryPolicy policy;
 
         public DataConnection GetConnection()
         {
             if (useCloneDataConnection)
             {
-                return (DataConnection)_cloneConnection.Value.Clone();    
+                var conn =  (DataConnection)_cloneConnection.Value.Clone();
+                conn.RetryPolicy = policy;
+                return conn;
             }
             else
             {
-                return new DataConnection(opts);    
+                return new DataConnection(opts) { RetryPolicy = policy};    
             }
         }
     }

@@ -21,7 +21,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db
             //LinqToDB.Common.Configuration.ContinueOnCapturedContext = false;
             DotMemoryUnitTestOutput.SetOutputMethod(
                 message => output.WriteLine(message));
-            var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(conf.GetConfig("akka.persistence.journal.testspec")));
+            var connFactory = new AkkaPersistenceDataConnectionFactory(new JournalConfig(conf.GetConfig("akka.persistence.journal.linq2db")));
             using (var conn = connFactory.GetConnection())
             {
                 try
