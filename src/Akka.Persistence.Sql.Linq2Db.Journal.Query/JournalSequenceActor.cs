@@ -19,6 +19,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
         private ILoggingAdapter _log;
         private ActorMaterializer _mat;
         public ITimerScheduler Timers { get; set; }
+
         public JournalSequenceActor(IReadJournalDAO readJournalDao,
             JournalSequenceRetrievalConfig config)
         {
@@ -32,25 +33,27 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             _log = Context.GetLogger();
         }
 
-        protected bool receive(object message)
+        private bool _receive(object message)
         {
-            return receive(message, 0, ImmutableDictionary<int, MissingElements>.Empty, 0, queryDelay);
+            return _receive(message, 0,
+                ImmutableDictionary<int, MissingElements>.Empty, 0, queryDelay);
         }
 
-        protected bool receive(object message, long currentMaxOrdering,
+        protected bool _receive(object message, long currentMaxOrdering,
             IImmutableDictionary<int, MissingElements> missingByCounter,
             int moduloCounter, TimeSpan previousDelay)
         {
             if (message is ScheduleAssumeMaxOrderingId s)
             {
                 var delay = queryDelay * maxTries;
-                Timers.StartSingleTimer(AssumeMaxOrderingIdTimerKey.Instance, new AssumeMaxOrderingId(s.MaxInDatabase),delay);
+                Timers.StartSingleTimer(AssumeMaxOrderingIdTimerKey.Instance,
+                    new AssumeMaxOrderingId(s.MaxInDatabase), delay);
             }
             else if (message is AssumeMaxOrderingId a)
             {
                 if (currentMaxOrdering < a.Max)
                 {
-                    Become((o => receive(o, maxTries, missingByCounter,
+                    Become((o => _receive(o, maxTries, missingByCounter,
                         moduloCounter, previousDelay)));
                 }
             }
@@ -61,7 +64,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             else if (message is QueryOrderingIds)
             {
                 _readJournalDao
-                    .journalSequence(currentMaxOrdering, _config.BatchSize)
+                    .JournalSequence(currentMaxOrdering, _config.BatchSize)
                     .RunWith(Sink.Seq<long>(), _mat).PipeTo(Self, sender: Self,
                         success: res =>
                             new NewOrderingIds(currentMaxOrdering, res));
@@ -74,7 +77,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                 }
                 else
                 {
-                    findGaps(nids.Elements, currentMaxOrdering,
+                    _findGaps(nids.Elements, currentMaxOrdering,
                         missingByCounter, moduloCounter);
                 }
             }
@@ -89,8 +92,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                         t, newDelay);
                 }
 
-                scheduleQuery(newDelay);
-                Context.Become(o => receive(o, currentMaxOrdering,
+                _scheduleQuery(newDelay);
+                Context.Become(o => _receive(o, currentMaxOrdering,
                     missingByCounter, moduloCounter, newDelay));
             }
             else
@@ -101,14 +104,16 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             return true;
         }
 
-        private void findGaps(IImmutableList<long> elements,
+        private void _findGaps(IImmutableList<long> elements,
             long currentMaxOrdering,
-            IImmutableDictionary<int, MissingElements> missingByCounter, int moduloCounter)
+            IImmutableDictionary<int, MissingElements> missingByCounter,
+            int moduloCounter)
         {
             var givenUp =
-                missingByCounter.ContainsKey(moduloCounter) ? missingByCounter[moduloCounter]:
-                    MissingElements.Empty;
-            var (nextmax,_,missingElems) = elements.Aggregate(
+                missingByCounter.ContainsKey(moduloCounter)
+                    ? missingByCounter[moduloCounter]
+                    : MissingElements.Empty;
+            var (nextMax, _, missingElems) = elements.Aggregate(
                 (currentMax: currentMaxOrdering,
                     previousElement: currentMaxOrdering,
                     missing: MissingElements.Empty),
@@ -147,18 +152,19 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             if (noGapsFound && isFullBatch)
             {
                 Self.Tell(new QueryOrderingIds());
-                Context.Become(o=> receive(o,nextmax,newMissingByCounter,moduloCounter, queryDelay));
+                Context.Become(o => _receive(o, nextMax, newMissingByCounter,
+                    moduloCounter, queryDelay));
             }
             else
             {
-                scheduleQuery(queryDelay);
-                Context.Become(o => receive(o, nextmax, newMissingByCounter,
+                _scheduleQuery(queryDelay);
+                Context.Become(o => _receive(o, nextMax, newMissingByCounter,
                     (moduloCounter + 1) % _config.MaxTries, queryDelay));
             }
 
         }
 
-        public void scheduleQuery(TimeSpan delay)
+        private void _scheduleQuery(TimeSpan delay)
         {
             Timers.StartSingleTimer(QueryOrderingIdsTimerKey.Instance,
                 new QueryOrderingIds(), delay);
@@ -166,14 +172,14 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
 
         protected override bool Receive(object message)
         {
-            return receive(message);
+            return _receive(message);
         }
 
         protected override void PreStart()
         {
             var self = Self;
             self.Tell(new QueryOrderingIds());
-            _readJournalDao.maxJournalSequence().ContinueWith(t =>
+            _readJournalDao.MaxJournalSequence().ContinueWith(t =>
             {
                 if (t.IsFaulted)
                 {
@@ -188,7 +194,5 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             });
             base.PreStart();
         }
-
-        
     }
 }

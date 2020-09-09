@@ -8,7 +8,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
         private string _configPath;
         private ExtendedActorSystem _system;
         private Configuration.Config _config;
-        
+
         public Linq2DbReadJournalProvider(ExtendedActorSystem system,
             Configuration.Config config)
         {
@@ -16,6 +16,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             _config = config;
             _configPath = "linq2db";
         }
+
         public Linq2DbReadJournalProvider(ExtendedActorSystem system,
             Configuration.Config config, string configPath)
         {
@@ -23,9 +24,10 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             _config = config;
             _configPath = configPath;
         }
+
         public IReadJournal GetReadJournal()
         {
-            return new Linq2DbReadJournal(_system,_config, _configPath);
+            return new Linq2DbReadJournal(_system, _config, _configPath);
         }
     }
 }

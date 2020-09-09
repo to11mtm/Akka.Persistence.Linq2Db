@@ -13,7 +13,9 @@ using LinqToDB.Data;
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
 {
-    public abstract class BaseByteReadArrayJournalDAO :BaseJournalDaoWithReadMessages , IReadJournalDAO
+    public abstract class
+        BaseByteReadArrayJournalDAO : BaseJournalDaoWithReadMessages,
+            IReadJournalDAO
     {
         private bool includeDeleted;
         private ReadJournalConfig _readJournalConfig;
@@ -26,7 +28,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             FlowPersistentReprSerializer<JournalRow> serializer) : base(ec, mat,
             connectionFactory)
         {
-            
+
             _readJournalConfig = readJournalConfig;
             includeDeleted = readJournalConfig.IncludeDeleted;
             _serializer = serializer;
@@ -38,16 +40,17 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                 .Where(jr =>
                     includeDeleted == false || (jr.deleted == false));
         }
-        public Source<string, NotUsed> allPersistenceIdsSource(long max)
+
+        public Source<string, NotUsed> AllPersistenceIdsSource(long max)
         {
             using (var db = _connectionFactory.GetConnection())
             {
                 var maxTake = MaxTake(max);
                 return Source.From(baseQuery(db)
-                    .Select(r=>r.persistenceId).Distinct()
+                    .Select(r => r.persistenceId).Distinct()
                     .Take(maxTake).ToList());
             }
-            
+
         }
 
         private static int MaxTake(long max)
@@ -67,7 +70,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
 
         public Source<
             Util.Try<(IPersistentRepresentation, IImmutableSet<string>, long)>,
-            NotUsed> eventsByTag(string tag, long offset, long maxOffset,
+            NotUsed> EventsByTag(string tag, long offset, long maxOffset,
             long max)
         {
             var separator = _readJournalConfig.PluginConfig.TagSeparator;
@@ -86,17 +89,19 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             }
         }
 
-        private Flow<JournalRow, JournalRow,NotUsed> perfectlyMatchTag(string tag,
+        private Flow<JournalRow, JournalRow, NotUsed> perfectlyMatchTag(
+            string tag,
             string separator)
         {
-            
+
             return Flow.Create<JournalRow>().Where(r =>
                 (r.tags ?? "")
                 .Split(new[] {separator}, StringSplitOptions.RemoveEmptyEntries)
                 .Any(t => t.Contains(tag)));
         }
 
-        public override Source<Util.Try<ReplayCompletion>, NotUsed> Messages(DataConnection dc, string persistenceId, long fromSequenceNr,
+        public override Source<Util.Try<ReplayCompletion>, NotUsed> Messages(
+            DataConnection dc, string persistenceId, long fromSequenceNr,
             long toSequenceNr, long max)
         {
             var toTake = MaxTake(max);
@@ -108,7 +113,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                                         && r.sequenceNumber >= fromSequenceNr
                                         && r.sequenceNumber <= toSequenceNr)
                             .OrderBy(r => r.sequenceNumber)
-                            .Take(toTake).ToList()).Via(_serializer.DeserializeFlow())
+                            .Take(toTake).ToList())
+                    .Via(_serializer.DeserializeFlow())
                     .Select(
                         t =>
                         {
@@ -128,21 +134,21 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                         });
 
             }
-            
+
         }
 
-        public Source<long, NotUsed> journalSequence(long offset, long limit)
+        public Source<long, NotUsed> JournalSequence(long offset, long limit)
         {
             var maxTake = MaxTake(limit);
             using (var conn = _connectionFactory.GetConnection())
             {
                 return Source.From(conn.GetTable<JournalRow>()
                     .Where(r => r.ordering > offset).Select(r => r.ordering)
-                    .OrderBy(r=>r).Take(maxTake).ToList());
+                    .OrderBy(r => r).Take(maxTake).ToList());
             }
         }
 
-        public Task<long> maxJournalSequence()
+        public Task<long> MaxJournalSequence()
         {
             using (var db = _connectionFactory.GetConnection())
             {

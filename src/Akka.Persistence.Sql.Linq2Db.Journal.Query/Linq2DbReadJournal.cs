@@ -16,7 +16,7 @@ using LinqToDB;
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
 {
-    public class Linq2DbReadJournal :  
+    public class Linq2DbReadJournal :
         IPersistenceIdsQuery,
         ICurrentPersistenceIdsQuery,
         IEventsByPersistenceIdQuery,
@@ -28,9 +28,11 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
         {
             get { return "akka.persistence.query.journal.linq2db"; }
         }
+
         public static Configuration.Config DefaultConfiguration =>
             ConfigurationFactory.FromResource<Linq2DbReadJournal>(
                 "Akka.Persistence.Sql.Linq2Db.Journal.Query.reference.conf");
+
         private IActorRef journalSequenceActor;
         private ActorMaterializer _mat;
         private Source<long, ICancelable> delaySource;
@@ -40,38 +42,45 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
         private ReadJournalConfig readJournalConfig;
         private ExtendedActorSystem system;
 
-        public Linq2DbReadJournal(ExtendedActorSystem system, Configuration.Config config, string configPath)
+        public Linq2DbReadJournal(ExtendedActorSystem system,
+            Configuration.Config config, string configPath)
         {
             this.system = system;
             writePluginId = config.GetString("write-plugin");
-            
-             system.RegisterExtension(Persistence.Instance);
-             //var persist = Persistence.Instance.CreateExtension(system);
-             var persist = Persistence.Instance.Get(system);
+
+            system.RegisterExtension(Persistence.Instance);
+            //var persist = Persistence.Instance.CreateExtension(system);
+            var persist = Persistence.Instance.Get(system);
             eventAdapters = persist
                 .AdaptersFor(writePluginId);
             readJournalConfig = new ReadJournalConfig(config);
-            var connFact =new AkkaPersistenceDataConnectionFactory(readJournalConfig);
+            var connFact =
+                new AkkaPersistenceDataConnectionFactory(readJournalConfig);
             _mat = ActorMaterializer.Create(system,
-                ActorMaterializerSettings.Create(system), "l2db-query-mat"+configPath);
+                ActorMaterializerSettings.Create(system),
+                "l2db-query-mat" + configPath);
             readJournalDao = new ByteArrayReadJournalDao(
                 system.Scheduler.Advanced, _mat,
                 connFact, readJournalConfig,
                 new ByteArrayJournalSerializer(readJournalConfig,
                     system.Serialization,
                     readJournalConfig.PluginConfig.TagSeparator));
-            journalSequenceActor= system.ActorOf(Props.Create(() => new JournalSequenceActor(readJournalDao
-                    ,
-                    readJournalConfig.JournalSequenceRetrievalConfiguration)),
+            journalSequenceActor = system.ActorOf(Props.Create(() =>
+                    new JournalSequenceActor(readJournalDao
+                        ,
+                        readJournalConfig
+                            .JournalSequenceRetrievalConfiguration)),
                 readJournalConfig.TableConfig.TableName +
                 "akka-persistence-linq2db-sequence-actor");
             delaySource = Source.Tick(
-                TimeSpan.FromSeconds(0),readJournalConfig.RefreshInterval, 0L).Take(1);
+                    TimeSpan.FromSeconds(0), readJournalConfig.RefreshInterval,
+                    0L)
+                .Take(1);
         }
 
         public Source<string, NotUsed> CurrentPersistenceIds()
         {
-            return readJournalDao.allPersistenceIdsSource(long.MaxValue);
+            return readJournalDao.AllPersistenceIdsSource(long.MaxValue);
         }
 
         public Source<string, NotUsed> PersistenceIds()
@@ -82,14 +91,15 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                     delaySource.MapMaterializedValue(r => NotUsed.Instance)
                         .ConcatMany<long, string, NotUsed>(_ =>
                             CurrentPersistenceIds())
-                ).StatefulSelectMany<string,string,NotUsed>(()=> 
+                ).StatefulSelectMany<string, string, NotUsed>(() =>
                 {
                     var knownIds = ImmutableHashSet<string>.Empty;
 
                     IEnumerable<string> next(string id)
                     {
                         var xs =
-                            ImmutableHashSet<string>.Empty.Add(id).Except(knownIds);
+                            ImmutableHashSet<string>.Empty.Add(id)
+                                .Except(knownIds);
                         knownIds = knownIds.Add(id);
                         return xs;
                     }
@@ -98,7 +108,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                 });
         }
 
-        private IImmutableList<IPersistentRepresentation> adaptEvents(
+        private IImmutableList<IPersistentRepresentation> _adaptEvents(
             IPersistentRepresentation persistentRepresentation)
         {
             var adapter =
@@ -109,41 +119,47 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                     persistentRepresentation.WithPayload(e)).ToImmutableList();
         }
 
-        public Source<EventEnvelope, NotUsed> CurrentEventsByPersistenceId(string persistenceId, long fromSequenceNr,
+        public Source<EventEnvelope, NotUsed> CurrentEventsByPersistenceId(
+            string persistenceId, long fromSequenceNr,
             long toSequenceNr)
         {
-            return eventsByPersistenceIdSource(persistenceId, fromSequenceNr,
+            return _eventsByPersistenceIdSource(persistenceId, fromSequenceNr,
                 toSequenceNr, Util.Option<(TimeSpan, IScheduler)>.None);
         }
 
-        public Source<EventEnvelope, NotUsed> EventsByPersistenceId(string persistenceId, long fromSequenceNr,
+        public Source<EventEnvelope, NotUsed> EventsByPersistenceId(
+            string persistenceId, long fromSequenceNr,
             long toSequenceNr)
         {
-            return eventsByPersistenceIdSource(persistenceId, fromSequenceNr,
-                toSequenceNr, new Util.Option<(TimeSpan, IScheduler)>((readJournalConfig.RefreshInterval,system.Scheduler)));
+            return _eventsByPersistenceIdSource(persistenceId, fromSequenceNr,
+                toSequenceNr,
+                new Util.Option<(TimeSpan, IScheduler)>((
+                    readJournalConfig.RefreshInterval, system.Scheduler)));
         }
 
-        public Source<EventEnvelope, NotUsed> eventsByPersistenceIdSource(
+        private Source<EventEnvelope, NotUsed> _eventsByPersistenceIdSource(
             string persistenceId, long fromSequenceNr, long toSequenceNr,
             Akka.Util.Option<(TimeSpan, IScheduler)> refreshInterval)
         {
             var batchSize = readJournalConfig.MaxBufferSize;
-            return readJournalDao.MessagesWithBatch(persistenceId, fromSequenceNr,
+            return readJournalDao.MessagesWithBatch(persistenceId,
+                    fromSequenceNr,
                     toSequenceNr, batchSize, refreshInterval)
                 .SelectAsync(1,
                     reprAndOrdNr => Task.FromResult(reprAndOrdNr.Get()))
-                .SelectMany((ReplayCompletion r) => adaptEvents(r.repr)
+                .SelectMany((ReplayCompletion r) => _adaptEvents(r.repr)
                     .Select(p => new {repr = r.repr, ordNr = r.SequenceNr}))
                 .Select(r => new EventEnvelope(new Sequence(r.ordNr),
                     r.repr.PersistenceId, r.repr.SequenceNr, r.repr.Payload));
         }
 
-        public Source<EventEnvelope, NotUsed> CurrentEventsByTag(string tag, Offset offset)
+        public Source<EventEnvelope, NotUsed> CurrentEventsByTag(string tag,
+            Offset offset)
         {
-            return currentEventsByTag(tag, (offset as Sequence)?.Value??0);
+            return _currentEventsByTag(tag, (offset as Sequence)?.Value ?? 0);
         }
 
-        private Source<EventEnvelope, NotUsed> currentJournalEventsByTag(
+        private Source<EventEnvelope, NotUsed> _currentJournalEventsByTag(
             string tag, long offset, long max, MaxOrderingId latestOrdering)
         {
             if (latestOrdering.Max < offset)
@@ -152,24 +168,23 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
             }
 
             return readJournalDao
-                .eventsByTag(tag, offset, latestOrdering.Max, max).SelectAsync(
+                .EventsByTag(tag, offset, latestOrdering.Max, max).SelectAsync(
                     1,
                     r =>
                         Task.FromResult(r.Get())
                 ).SelectMany<(IPersistentRepresentation,
-                    IImmutableSet<string>, long),EventEnvelope,NotUsed>(
-                    (a) 
+                    IImmutableSet<string>, long), EventEnvelope, NotUsed>(
+                    (a)
                         =>
-                    
-                {
-                    return adaptEvents(a.Item1).Select(r =>
-                        new EventEnvelope(new Sequence(a.Item3),
-                            r.PersistenceId,
-                            r.SequenceNr, r.Payload));
-                });
+                    {
+                        return _adaptEvents(a.Item1).Select(r =>
+                            new EventEnvelope(new Sequence(a.Item3),
+                                r.PersistenceId,
+                                r.SequenceNr, r.Payload));
+                    });
         }
 
-        private Source<EventEnvelope, NotUsed> eventsByTag(string tag,
+        private Source<EventEnvelope, NotUsed> _eventsByTag(string tag,
             long offset, long? terminateAfterOffset)
         {
             var askTimeout = readJournalConfig
@@ -187,7 +202,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                                 await journalSequenceActor.Ask<MaxOrderingId>(
                                     new GetMaxOrderingId(), askTimeout);
                             var xs =
-                                await currentJournalEventsByTag(tag, uf.Item1,
+                                await _currentJournalEventsByTag(tag, uf.Item1,
                                     batchSize,
                                     queryUntil).RunWith(
                                     Sink.Seq<EventEnvelope>(),
@@ -252,17 +267,19 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                     }).SelectMany(r => r);
         }
 
-        private Source<EventEnvelope, NotUsed> currentEventsByTag(string tag,
+        private Source<EventEnvelope, NotUsed> _currentEventsByTag(string tag,
             long offset)
         {
-            return Source.FromTask(readJournalDao.maxJournalSequence()).ConcatMany(
-                maxInDb =>
-                {
-                    return eventsByTag(tag, offset, Some.Create(maxInDb));
-                });
+            return Source.FromTask(readJournalDao.MaxJournalSequence())
+                .ConcatMany(
+                    maxInDb =>
+                    {
+                        return _eventsByTag(tag, offset, Some.Create(maxInDb));
+                    });
         }
 
-        public Source<EventEnvelope, NotUsed> EventsByTag(string tag, Offset offset)
+        public Source<EventEnvelope, NotUsed> EventsByTag(string tag,
+            Offset offset)
         {
             long theOffset = 0;
             if (offset is Sequence s)
@@ -270,7 +287,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.Query
                 theOffset = s.Value;
             }
 
-            return eventsByTag(tag, theOffset, null);
+            return _eventsByTag(tag, theOffset, null);
         }
     }
 }
