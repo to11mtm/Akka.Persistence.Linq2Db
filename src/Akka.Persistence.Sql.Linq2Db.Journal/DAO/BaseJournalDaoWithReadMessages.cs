@@ -30,7 +30,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
 
         
         public Source<Util.Try<ReplayCompletion>, NotUsed> MessagesWithBatch(string persistenceId, long fromSequenceNr,
-            long toSequenceNr, int batchSize, Util.Option<(TimeSpan,SchedulerBase)> refreshInterval)
+            long toSequenceNr, int batchSize, Util.Option<(TimeSpan,IScheduler)> refreshInterval)
         {
             var src = Source
                 .UnfoldAsync<(long, FlowControl),

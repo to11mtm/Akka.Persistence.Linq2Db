@@ -1,6 +1,6 @@
 ﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
-    public class JournalConfig
+    public class JournalConfig : IProviderConfig
     {
         public JournalConfig(Configuration.Config config)
         {
@@ -19,6 +19,10 @@
         public string UseSharedDb { get; protected set; }
 
         public BaseByteArrayJournalDaoConfig DaoConfig { get; protected set; }
+        public IDaoConfig IDaoConfig
+        {
+            get { return DaoConfig; }
+        }
 
         public JournalPluginConfig PluginConfig { get; protected set; }
 
@@ -30,5 +34,20 @@
         public string ProviderName { get; }
         public string ConnectionString { get; }
         public bool UseCloneConnection { get; set; }
+    }
+
+    public interface IProviderConfig
+    {
+        string ProviderName { get; }
+        string ConnectionString { get; }
+        JournalTableConfig TableConfig { get; }
+        IDaoConfig IDaoConfig { get; }
+        bool UseCloneConnection { get; }
+        string DefaultSerializer { get; set; }
+    }
+
+    public interface IDaoConfig
+    {
+        bool DeleteCompatibilityMode { get; }
     }
 }

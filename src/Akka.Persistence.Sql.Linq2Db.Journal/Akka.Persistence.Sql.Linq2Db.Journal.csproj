@@ -9,6 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="LanguageExt.Core" Version="3.4.15" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db\Akka.Persistence.Sql.Linq2Db.csproj" />
     </ItemGroup>
 
@@ -17,6 +21,10 @@
       <EmbeddedResource Include="reference.conf">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Query" />
     </ItemGroup>
 
 </Project>

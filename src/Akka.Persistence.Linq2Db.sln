@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Linq2Db.Be
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Linq2Db.CompatibilityTests", "Akka.Persistence.Linq2Db.CompatibilityTests\Akka.Persistence.Linq2Db.CompatibilityTests.csproj", "{1AF05A0B-B285-478F-809B-3441F3B0386D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Sql.Linq2Db.Journal.Query", "Akka.Persistence.Sql.Linq2Db.Journal.Query\Akka.Persistence.Sql.Linq2Db.Journal.Query.csproj", "{2CAD2595-5C82-41FB-BD95-65B0A2162258}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Persistence.Linq2Db.Journal.Query.Tests", "Akka.Persistence.Linq2Db.Journal.Query.Tests\Akka.Persistence.Linq2Db.Journal.Query.Tests.csproj", "{3D3F8A19-8299-441F-BA5E-C7369A3B68F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +52,13 @@ Global
 		{1AF05A0B-B285-478F-809B-3441F3B0386D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AF05A0B-B285-478F-809B-3441F3B0386D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AF05A0B-B285-478F-809B-3441F3B0386D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CAD2595-5C82-41FB-BD95-65B0A2162258}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CAD2595-5C82-41FB-BD95-65B0A2162258}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CAD2595-5C82-41FB-BD95-65B0A2162258}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CAD2595-5C82-41FB-BD95-65B0A2162258}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D3F8A19-8299-441F-BA5E-C7369A3B68F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D3F8A19-8299-441F-BA5E-C7369A3B68F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D3F8A19-8299-441F-BA5E-C7369A3B68F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D3F8A19-8299-441F-BA5E-C7369A3B68F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

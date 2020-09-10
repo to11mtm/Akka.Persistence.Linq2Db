@@ -17,7 +17,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
         private MappingSchema mappingSchema;
         private LinqToDbConnectionOptions opts;
 
-        public AkkaPersistenceDataConnectionFactory(JournalConfig config)
+        public AkkaPersistenceDataConnectionFactory(IProviderConfig config)
         {
             providerName = config.ProviderName;
             connString = config.ConnectionString;
@@ -52,7 +52,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             
             //Probably overkill, but we only set Metadata Mapping if specified
             //That we are in delete compatibility mode.
-            if (config.DaoConfig.DeleteCompatibilityMode)
+            if (config.IDaoConfig.DeleteCompatibilityMode)
             {
                 fmb.Entity<JournalMetaData>().HasTableName(config.TableConfig.MetadataTableName)
                     .HasSchemaName(config.TableConfig.SchemaName)

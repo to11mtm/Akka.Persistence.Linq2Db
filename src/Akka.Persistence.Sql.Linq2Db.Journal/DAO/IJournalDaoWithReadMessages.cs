@@ -14,6 +14,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
             long max);
         Source<Try<ReplayCompletion>,NotUsed> MessagesWithBatch(
             string persistenceId, long fromSequenceNr, long toSequenceNr,
-            int batchSize, Option<(TimeSpan,SchedulerBase)> refreshInterval);
+            int batchSize, Option<(TimeSpan,IScheduler)> refreshInterval);
     }
 }

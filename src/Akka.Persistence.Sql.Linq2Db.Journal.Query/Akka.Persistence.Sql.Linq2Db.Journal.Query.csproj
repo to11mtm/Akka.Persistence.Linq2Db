@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <AssemblyName>Akka.Persistence.Sql.Linq2Db.Journal.Query</AssemblyName>
+        <RootNamespace>Akka.Persistence.Sql.Linq2Db.Journal.Query</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db.Journal\Akka.Persistence.Sql.Linq2Db.Journal.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="reference.conf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Akka.Persistence.Query" Version="1.4.10" />
+    </ItemGroup>
+
+</Project>

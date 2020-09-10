@@ -7,8 +7,13 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
 ## Status
 
  - Usable for basic Read/Writes
- - Work required for `Akka.Persistence.Query`
-   - Hopefully compatible with existing Query journals.
+ - Implements the following for `Akka.Persistence.Query`:
+   - IPersistenceIdsQuery
+   - ICurrentPersistenceIdsQuery
+   - IEventsByPersistenceIdQuery
+   - ICurrentEventsByPersistenceIdQuery
+   - IEventsByTagQuery
+   - ICurrentEventsByTagQuery
 
 #### This is still a WORK IN PROGRESS
 

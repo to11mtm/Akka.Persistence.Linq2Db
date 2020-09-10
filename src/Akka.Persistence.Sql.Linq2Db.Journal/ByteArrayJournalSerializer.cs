@@ -16,9 +16,9 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
     {
         private Akka.Serialization.Serialization _serializer;
         private string _separator;
-        private JournalConfig _journalConfig;
+        private IProviderConfig _journalConfig;
 
-        public ByteArrayJournalSerializer(JournalConfig journalConfig, Akka.Serialization.Serialization serializer, string separator)
+        public ByteArrayJournalSerializer(IProviderConfig journalConfig, Akka.Serialization.Serialization serializer, string separator)
         {
             _journalConfig = journalConfig;
             _serializer = serializer;
