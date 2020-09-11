@@ -36,7 +36,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
                             "akka.stream.default-blocking-io-dispatcher"),
                     "l2dbWriteJournal"
                 );
-                _journalConfig = new JournalConfig(config.WithFallback(DefaultConfiguration));
+                _journalConfig = new JournalConfig(config);
                 try
                 {
                     _journal = new ByteArrayJournalDao(

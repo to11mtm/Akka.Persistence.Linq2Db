@@ -1,9 +1,14 @@
-﻿namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
+﻿using Akka.Configuration;
+
+namespace Akka.Persistence.Sql.Linq2Db.Journal.Config
 {
     public class JournalConfig : IProviderConfig
     {
         public JournalConfig(Configuration.Config config)
         {
+            config =
+                config.SafeWithFallback(
+                    Linq2DbWriteJournal.DefaultConfiguration);
             ConnectionString = config.GetString("connection-string");
             ProviderName = config.GetString("provider-name");
             TableConfig = new JournalTableConfig(config);

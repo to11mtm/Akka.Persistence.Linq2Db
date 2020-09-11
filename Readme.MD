@@ -24,7 +24,12 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
    - Persistence
    - Recovery
  
-
+ Not Yet Implemented:
+ 
+  - Snapshots
+    - You can use existing Snapshot plugins in meantime. We intend to maintain compatibility with existing SQL snapshot libs.
+    
+    
 ## Features/Architecture:
 
  - Akka.Streams used aggressively for tune-able blocking overhead.

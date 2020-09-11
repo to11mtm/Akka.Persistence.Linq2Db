@@ -210,45 +210,55 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                     var transaction =await db.BeginTransactionAsync();
                     try
                     {
-                        db.GetTable<JournalRow>()
+                        await db.GetTable<JournalRow>()
                             .Where(r =>
                                 r.persistenceId == persistenceId &&
                                 (r.sequenceNumber <= maxSequenceNr))
                             .Set(r => r.deleted, true)
-                            .Update();
+                            .UpdateAsync();
                         var maxMarkedDeletion =
-                            MaxMarkedForDeletionMaxPersistenceIdQuery(db,
-                                persistenceId).FirstOrDefault();
+                            await MaxMarkedForDeletionMaxPersistenceIdQuery(db,
+                                persistenceId).FirstOrDefaultAsync();
                         if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
                         {
                             await db.GetTable<JournalMetaData>()
-                                .InsertAsync(() => new JournalMetaData()
-                                {
-                                    PersistenceId = persistenceId,
-                                    SequenceNumber =
-                                        maxMarkedDeletion
-                                });
+                                .InsertOrUpdateAsync(() => new JournalMetaData()
+                                    {
+                                        PersistenceId = persistenceId,
+                                        SequenceNumber =
+                                            maxMarkedDeletion
+                                    },
+                                    jmd => new JournalMetaData()
+                                    {
+                                        PersistenceId = persistenceId,
+                                        SequenceNumber = maxMarkedDeletion
+                                    },
+                                    () => new JournalMetaData()
+                                    {
+                                        PersistenceId = persistenceId,
+                                        SequenceNumber = maxMarkedDeletion
+                                    });
                         }
 
                         if (logicalDelete == false)
                         {
-                            db.GetTable<JournalRow>()
+                            await db.GetTable<JournalRow>()
                                 .Where(r =>
                                     r.persistenceId == persistenceId &&
                                     (r.sequenceNumber <= maxSequenceNr &&
                                      r.sequenceNumber <
                                      maxMarkedDeletion
-                                         )).Delete();
+                                         )).DeleteAsync();
                         }
 
                         if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
                         {
-                            db.GetTable<JournalMetaData>()
+                            await db.GetTable<JournalMetaData>()
                                 .Where(r =>
                                     r.PersistenceId == persistenceId &&
                                     r.SequenceNumber <
                                     maxMarkedDeletion)
-                                .Delete();
+                                .DeleteAsync();
                         }
 
                         await transaction.CommitAsync();
@@ -256,7 +266,16 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                     catch (Exception ex)
                     {
                         _logger.Error(ex,"Error on delete!");
-                        await transaction.RollbackAsync();
+                        try
+                        {
+                            await transaction.RollbackAsync();
+                        }
+                        catch (Exception )
+                        {
+                            //If rollback fails, Don't throw as it will mask
+                            //original exception
+                        }
+                        
                         throw;
                     }
                 }
