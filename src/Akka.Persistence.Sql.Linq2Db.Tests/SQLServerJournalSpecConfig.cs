@@ -17,8 +17,9 @@ akka.persistence {{
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = """ + LinqToDB.ProviderName.SqlServer2017 + @"""
-                        parallelism = 2
-                        use-clone-connection = true
+                        parallelism = {4}
+                        batch-size = {3}
+                        #use-clone-connection = true
                         tables.journal {{ 
                            auto-init = true
                            table-name = ""{2}"" 
@@ -27,12 +28,12 @@ akka.persistence {{
                 }}
             }}
         ";
-        public static Config Create(string connString, string tableName)
+        public static Configuration.Config Create(string connString, string tableName, int batchSize = 100, int parallelism = 2)
         {
             return ConfigurationFactory.ParseString(
                 string.Format(_journalBaseConfig,
                     typeof(Linq2DbWriteJournal).AssemblyQualifiedName,
-                    connString,tableName));
+                    connString,tableName,batchSize, parallelism));
         }
     }
 }

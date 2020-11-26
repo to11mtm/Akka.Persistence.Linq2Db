@@ -43,12 +43,22 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
    - `provider-name` is a `LinqToDb.ProviderName`
      - This handles DB Type mapping and Dialect-specific query building
  
+ - language-ext is used in place of Systems.Collections.Immutable where appropriate
+   - Lower memory allocations, improve performance
+ 
  - Recovery is also batched:
    - Up to `replay-batch-size` messages are fetched at a time
     - This is to both lower size of records fetched in single pass, as well as to prevent pulling too much data into memory at once.
    - If more messages are to be recovered, additional passes will be made.
- 
 
+ - Attempts to stay in spirit and Structure of JDBC Port with a few differences:
+   - Linq2Db isn't a Reactive Streams Compatible DB Provider (I don't know of any that are at this time for .NET)
+     - This means Some of the Query architecture is different, to deal with required semantic changes (i.e. Connection scoping)
+   - Both due to above and differences between Scala and C#, Some changes have been made for optimal performance (i.e. memory, GC)
+     - Classes used in place of ValueTuples in certain areas
+     - We don't have separate Query classes at this time. This can definitely be improved in future
+     - A couple of places around `WriteMessagesAsync` have had their logic moved to facilitate performance (i.e. use of `await` instead of `ContinueWith`)
+ 
 ## Currently Implemented:
 
 - Journal
@@ -124,7 +134,7 @@ akka.persistence {
   journal {
     plugin = "akka.persistence.journal.linq2db"
     linq2db {
-      class = "Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db.Journal"
+      class = "Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db"
       plugin-dispatcher = "akka.persistence.dispatchers.default-plugin-dispatcher"
       connection-string = "" # Connection String is Required!
 

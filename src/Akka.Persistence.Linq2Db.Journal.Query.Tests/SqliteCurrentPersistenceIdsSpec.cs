@@ -9,7 +9,7 @@ using Akka.Configuration;
 using Akka.Persistence.Linq2Db.Journal.Query.Tests;
 using Akka.Persistence.Query;
 using Akka.Persistence.Sql.Linq2Db.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Query;
+using Akka.Persistence.Sql.Linq2Db.Query;
 using Akka.Persistence.TCK.Query;
 using Akka.Util.Internal;
 using LinqToDB;

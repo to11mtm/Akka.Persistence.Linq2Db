@@ -1,12 +1,14 @@
 ﻿using System;
 using Akka.Configuration;
 using Akka.Persistence.Sql.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db.Config;
+using Akka.Persistence.Sql.Linq2Db.Db;
 using Akka.Persistence.Sql.Linq2Db.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.Sql.Linq2Db.Tests;
 using JetBrains.dotMemoryUnit;
 using LinqToDB;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db
@@ -14,7 +16,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db
     public class SQLServerLinq2DbJournalPerfSpec : L2dbJournalPerfSpec
     {
         
-        private static readonly  Config conf = SQLServerJournalSpecConfig.Create(ConnectionString.Instance,"journalPerfSpec");
+        private static readonly  Config conf = SQLServerJournalSpecConfig.Create(ConnectionString.Instance,"journalPerfSpec",200,2);
         public SQLServerLinq2DbJournalPerfSpec(ITestOutputHelper output)
             : base(conf, "SQLServer", output, eventsCount: TestConstants.NumMessages)
         {
@@ -33,6 +35,11 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db
                 }
                 
             }
+        }
+        [Fact]
+        public void PersistenceActor_Must_measure_PersistGroup1000()
+        {
+            RunGroupBenchmark(1000,10);
         }
         
     }

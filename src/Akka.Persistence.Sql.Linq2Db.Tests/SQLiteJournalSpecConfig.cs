@@ -18,7 +18,7 @@ plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = ""{2}""
-                        parallelism = 2
+                        parallelism = 1
                         max-row-by-row-size = 100
                         tables.journal {{ auto-init = true }}
                         use-clone-connection = ""{3}""
@@ -27,7 +27,7 @@ plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
             }}
         ";
         
-        public static Config Create(string connString, string providerName)
+        public static Configuration.Config Create(string connString, string providerName)
         {
             return ConfigurationFactory.ParseString(
                 string.Format(_journalBaseConfig,

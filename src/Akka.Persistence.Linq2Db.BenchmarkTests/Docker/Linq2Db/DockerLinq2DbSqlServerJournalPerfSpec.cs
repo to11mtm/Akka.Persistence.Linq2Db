@@ -2,8 +2,9 @@
 using Akka.Configuration;
 using Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db;
 using Akka.Persistence.Sql.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db.Config;
+using Akka.Persistence.Sql.Linq2Db.Db;
 using Akka.Persistence.Sql.Linq2Db.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.Sql.Linq2Db.Tests;
 using Akka.Persistence.Sql.Linq2Db.Tests.Docker;
@@ -25,7 +26,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Docker.Linq2Db
                         class = ""{0}""
                         #plugin-dispatcher = ""akka.actor.default-dispatcher""
                         plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
-                                
+                        parallelism = 2
                         connection-string = ""{1}""
 #connection-string = ""FullUri=file:test.db&cache=shared""
                         provider-name = """ + LinqToDB.ProviderName.SqlServer2017 + @"""

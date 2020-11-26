@@ -175,6 +175,42 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
                         });
                 }
             );
+            dotMemory.Check((mem) =>
+                {
+                    Measure(
+                        d =>
+                            $"Persist()-ing {EventsCount} took {d.TotalMilliseconds} ms",
+                        () =>
+                        {
+                            FeedAndExpectLast(p1, "p", Commands);
+                            p1.Tell(ResetCounter.Instance);
+                        });
+                }
+            );
+            dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
+        }
+        
+        [DotMemoryUnit(CollectAllocations=true, FailIfRunWithoutSupport = false)]
+        [Fact]
+        public void DotMemory_PersistenceActor_performance_must_measure_PersistGroup400()
+        {
+            dotMemory.Check();
+            
+            int numGroup = 400;
+            int numCommands = Math.Min(EventsCount/100,500);
+            
+            
+            
+            dotMemory.Check((mem) =>
+                {
+                    RunGroupBenchmark(numGroup, numCommands);
+                }
+            );
+            dotMemory.Check((mem) =>
+                {
+                    RunGroupBenchmark(numGroup, numCommands);
+                }
+            );
             dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
         }
         
@@ -495,6 +531,72 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
 
             },EventsCount,4);
         }
+        [Fact]
+        public void PersistenceActor_performance_must_measure_Recovering8()
+        {
+            var p1 = BenchActorNewProbe("OctPersistRecoverPid1", EventsCount);
+            var p2 = BenchActorNewProbe("OctPersistRecoverPid2", EventsCount);
+            var p3 = BenchActorNewProbe("OctPersistRecoverPid3", EventsCount);
+            var p4 = BenchActorNewProbe("OctPersistRecoverPid4", EventsCount);
+            var p5 = BenchActorNewProbe("OctPersistRecoverPid5", EventsCount);
+            var p6 = BenchActorNewProbe("OctPersistRecoverPid6", EventsCount);
+            var p7 = BenchActorNewProbe("OctPersistRecoverPid7", EventsCount);
+            var p8 = BenchActorNewProbe("OctPersistRecoverPid8", EventsCount);
+            FeedAndExpectLastSpecific(p1, "p", Commands);
+            FeedAndExpectLastSpecific(p2, "p", Commands);
+            FeedAndExpectLastSpecific(p3, "p", Commands);
+            FeedAndExpectLastSpecific(p4, "p", Commands);
+            FeedAndExpectLastSpecific(p5, "p", Commands);
+            FeedAndExpectLastSpecific(p6, "p", Commands);
+            FeedAndExpectLastSpecific(p7, "p", Commands);
+            FeedAndExpectLastSpecific(p8, "p", Commands);
+            MeasureGroup(d => $"Recovering {EventsCount} took {d.TotalMilliseconds} ms", () =>
+            {
+                var task1 = Task.Run(()=>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid1",
+                        EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                var task2 =Task.Run(() =>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid2", EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                var task3 =Task.Run(() =>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid3", EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                var task4 =Task.Run(() =>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid4", EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                var task5 =Task.Run(() =>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid5", EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                var task6 =Task.Run(() =>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid6", EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                var task7 =Task.Run(() =>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid7", EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                var task8 =Task.Run(() =>
+                {
+                    var refAndProbe =BenchActorNewProbe("OctPersistRecoverPid8", EventsCount);
+                    refAndProbe.probe.ExpectMsg(Commands.Last(), ExpectDuration);
+                });
+                Task.WaitAll(new[] {task1, task2,task3,task4,task5,task6,task7,task8});
+
+            },EventsCount,8);
+        }
     }
 
     internal class ResetCounter
@@ -568,6 +670,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests
 
                     if (_batch.Count % BatchSize == 0)
                     {
+                        
                         PersistAll(_batch, d =>
                         {
                             _counter += 1;

@@ -1,16 +1,144 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
 using Akka.TestKit.Xunit2.Internals;
+using JetBrains.dotMemoryUnit;
+using JetBrains.dotMemoryUnit.Kernel;
 using Xunit;
 using Xunit.Abstractions;
 using Config = Docker.DotNet.Models.Config;
 
 namespace Akka.Persistence.Linq2Db.CompatibilityTests
 {
+
+    public class DerpSpec
+    {
+        private byte[][] _bytes;
+        public DerpSpec(ITestOutputHelper outputHelper)
+        {
+            Output = outputHelper;
+            DotMemoryUnitTestOutput.SetOutputMethod(o=>outputHelper.WriteLine(o));
+            var rand = new Random();
+            var arraySize = 1024 * 1024 * 256;
+            _bytes = new byte[10][];
+            for (int i = 0; i < 10; i++)
+            {
+                _bytes[i] = new byte[arraySize];
+                //for (int j = 0; j < arraySize; j++)
+                //{
+                    rand.NextBytes(_bytes[i]);
+                //}
+            }
+        }
+
+        public ITestOutputHelper Output { get; set; }
+
+        [DotMemoryUnit(CollectAllocations = true)]
+        [Fact]
+        public void ConvertBinaryToSql_Memory_Usage()
+        {
+            dotMemory.Check((mem) =>
+                {
+                    DoOldBench();
+                }
+            );
+            dotMemory.Check((mem) =>
+                {
+                    DoOldBench();
+                }
+            );
+            dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
+        }
+        [DotMemoryUnit(CollectAllocations = true)]
+        [Fact]
+        public void ConvertBinaryToSqlNew_Memory_Usage()
+        {
+            dotMemory.Check((mem) =>
+                {
+                    DoNewBench();
+                }
+            );
+            dotMemory.Check((mem) =>
+                {
+                    DoNewBench();
+                }
+            );
+            dotMemoryApi.SaveCollectedData(@"c:\temp\dotmemory");
+        }
+        private void DoOldBench()
+        {
+            long byteCtr = 0;
+            long charCtr = 0;
+            foreach (var VARIABLE in _bytes)
+            {
+                byteCtr = byteCtr + VARIABLE.Length;
+                var sb = new StringBuilder();
+                ConvertBinaryToSql(sb, VARIABLE);
+                charCtr = charCtr +
+                          sb.Length;
+            }
+
+            //Output.WriteLine(
+            //    $"{DateTime.Now.ToString("s")} - Wrote {byteCtr} bytes into {charCtr} chars");
+        }
+        private void DoNewBench()
+        {
+            long byteCtr = 0;
+            long charCtr = 0;
+            foreach (var VARIABLE in _bytes)
+            {
+                byteCtr = byteCtr + VARIABLE.Length;
+                var sb = new StringBuilder();
+                ConvertBinaryToSqlNew(sb, VARIABLE);
+                charCtr = charCtr +
+                          sb.Length;
+            }
+
+            //Output.WriteLine(
+            //    $"{DateTime.Now.ToString("s")} - Wrote {byteCtr} bytes into {charCtr} chars");
+        }
+
+        static void ConvertBinaryToSql(StringBuilder stringBuilder, byte[] value)
+        {
+            
+            stringBuilder.Append("0x");
+
+            foreach (var b in value)
+                stringBuilder.Append(b.ToString("X2"));
+        }
+
+        static void ConvertBinaryToSqlNew(StringBuilder stringBuilder,
+            byte[] value)
+        {
+            stringBuilder.Append(HexStr(value));
+        }
+        public static string HexStr(byte[] p) {
+            char[] c = new char[p.Length * 2 + 2];
+
+            byte b;
+
+            c[0] = '0'; c[1] = 'x';
+
+            for(int y= 0, x= 2; y<p.Length; ++y, ++x) {
+
+                b = ((byte)(p[y] >> 4));
+
+                c[x] = (char)(b > 9 ? b + 0x37 : b + 0x30);
+
+                b = ((byte)(p[y] & 0xF));
+
+                c[++x] = (char)(b > 9 ? b + 0x37 : b + 0x30);
+
+            }
+            return new string(c);
+        }
+    }
     public abstract class CompatibilitySpec
     {
+        
+
         public CompatibilitySpec(ITestOutputHelper outputHelper)
         {
             Output = outputHelper;
