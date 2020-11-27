@@ -18,12 +18,15 @@
 
     <ItemGroup>
       <Folder Include="Journal\Config" />
-      <Folder Include="Snapshot" />
     </ItemGroup>
 
     <ItemGroup>
       <None Remove="reference.conf" />
       <EmbeddedResource Include="reference.conf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <None Remove="snapshot.conf" />
+      <EmbeddedResource Include="snapshot.conf">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </EmbeddedResource>
     </ItemGroup>

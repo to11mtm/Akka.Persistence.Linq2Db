@@ -1,16 +1,17 @@
 ﻿using Akka.Configuration;
 using Akka.Persistence.Sql.Linq2Db.Journal;
+using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 
 namespace Akka.Persistence.Sql.Linq2Db.Config
 {
-    public class JournalConfig : IProviderConfig
+    public class JournalConfig : IProviderConfig<JournalTableConfig>
     {
         public JournalConfig(Configuration.Config config)
         {
             config =
                 config.SafeWithFallback(
                     Linq2DbWriteJournal.DefaultConfiguration);
-            MaterializerDispatcher = config.GetString("use-dispatcher","akka.actor.default-dispatcher");
+            MaterializerDispatcher = config.GetString("materializer-dispatcher","akka.actor.default-dispatcher");
             ConnectionString = config.GetString("connection-string");
             ProviderName = config.GetString("provider-name");
             TableConfig = new JournalTableConfig(config);
@@ -45,19 +46,19 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
         public bool UseCloneConnection { get; set; }
     }
 
-    public interface IProviderConfig
+    public interface IProviderConfig<TTable>
     {
         string ProviderName { get; }
         string ConnectionString { get; }
-        JournalTableConfig TableConfig { get; }
+        TTable TableConfig { get; }
         IDaoConfig IDaoConfig { get; }
         bool UseCloneConnection { get; }
-        string DefaultSerializer { get; set; }
+        string DefaultSerializer { get; }
     }
 
     public interface IDaoConfig
     {
-        bool DeleteCompatibilityMode { get; }
+        bool SqlCommonCompatibilityMode { get; }
         int Parallelism { get; }
     }
 }

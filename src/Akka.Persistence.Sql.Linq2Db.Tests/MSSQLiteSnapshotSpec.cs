@@ -1,33 +1,32 @@
-using System;
-using System.Data.SQLite;
+﻿using System;
+using Akka.Persistence.TCK.Snapshot;
 using Akka.Util.Internal;
 using LinqToDB;
 using LinqToDB.Data;
-using Xunit;
+using Microsoft.Data.Sqlite;
 using Xunit.Abstractions;
 
 namespace Akka.Persistence.Sql.Linq2Db.Tests
 {
-    public class SystemDataSQLiteJournalSpec : Akka.Persistence.TCK.Journal.JournalSpec
+    public class MSSQLiteSnapshotSpec : SnapshotStoreSpec
     {
         private static AtomicCounter counter = new AtomicCounter(0);
-        private static string  connString = "FullUri=file:memdb"+counter.IncrementAndGet() +"?mode=memory&cache=shared";
-        //private static string connString =
-                //"Data Source=:memory:file:memdb"+ counter.IncrementAndGet() +"?mode=memory&cache=shared";
-            //"Filename=file:memdb-journal-" + counter.IncrementAndGet() +
-            //".db;Mode=Memory;Cache=Shared";
-        private static SQLiteConnection heldSqliteConnection =
-            new SQLiteConnection(connString);
+        //private static string  connString = "FullUri=file:memdb"+counter.IncrementAndGet() +"?mode=memory&cache=shared";
+        private static string connString =
+            "Filename=file:memdb-journal-" + counter.IncrementAndGet() +
+            ".db;Mode=Memory;Cache=Shared";
+        private static SqliteConnection heldSqliteConnection =
+            new SqliteConnection(connString);
 
-        public SystemDataSQLiteJournalSpec(ITestOutputHelper outputHelper) : base(SQLiteJournalSpecConfig.Create(connString, ProviderName.SQLiteClassic),
+        public MSSQLiteSnapshotSpec(ITestOutputHelper outputHelper) : base(SQLiteSnapshotSpecConfig.Create(connString, ProviderName.SQLiteMS),
             "linq2dbJournalSpec",
             output: outputHelper)
         {
-            try
+            //try
             {
                 heldSqliteConnection.Open();
             }
-            catch{}
+            //catch{}
             //DataConnection.OnTrace = info =>
             //{
             //    outputHelper.WriteLine(info.SqlText);

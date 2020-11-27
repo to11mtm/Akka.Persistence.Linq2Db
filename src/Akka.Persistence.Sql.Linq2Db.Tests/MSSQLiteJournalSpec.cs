@@ -26,19 +26,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
                 heldSqliteConnection.Open();
             }
             //catch{}
-            DataConnection.OnTrace = info =>
-            {
-                outputHelper.WriteLine(info.SqlText);
-                if (info.Exception != null)
-                {
-                    outputHelper.WriteLine(info.Exception.ToString());
-                }
-
-                if (!string.IsNullOrWhiteSpace(info.CommandText))
-                {
-                    outputHelper.WriteLine(info.CommandText);
-                }
-            };
             Initialize();
             GC.KeepAlive(heldSqliteConnection);
         }

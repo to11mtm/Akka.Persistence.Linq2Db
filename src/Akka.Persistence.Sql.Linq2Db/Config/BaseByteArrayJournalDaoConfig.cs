@@ -13,7 +13,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
             Parallelism = config.GetInt("parallelism", 2);
             LogicalDelete = config.GetBoolean("logical-delete", false);
             MaxRowByRowSize = config.GetInt("max-row-by-row-size", 100);
-            DeleteCompatibilityMode =
+            SqlCommonCompatibilityMode =
                 config.GetBoolean("delete-compatibility-mode", true);
         }
 
@@ -34,7 +34,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
 
         public int BufferSize { get; protected set; }
         
-        public bool DeleteCompatibilityMode { get; protected set; }
+        public bool SqlCommonCompatibilityMode { get; protected set; }
         
     }
 }

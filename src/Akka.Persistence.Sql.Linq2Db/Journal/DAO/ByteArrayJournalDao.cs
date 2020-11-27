@@ -35,7 +35,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                     _logger.Warning(e,$"Could not Create Journal Table {_journalConfig.TableConfig.TableName} as requested by config.");
                 }
 
-                if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
+                if (_journalConfig.DaoConfig.SqlCommonCompatibilityMode)
                 {
                     try
                     {

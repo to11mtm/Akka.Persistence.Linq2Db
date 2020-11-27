@@ -3,8 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Akka.Persistence.Sql.Linq2Db.Config;
+using Akka.Persistence.Sql.Linq2Db.Journal;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Snapshot;
 using Akka.Util;
+using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Data.RetryPolicy;
@@ -21,7 +24,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Db
         private LinqToDbConnectionOptions opts;
         
         
-        public AkkaPersistenceDataConnectionFactory(IProviderConfig config)
+        public AkkaPersistenceDataConnectionFactory(IProviderConfig<JournalTableConfig> config)
         {
             providerName = config.ProviderName;
             connString = config.ConnectionString;
@@ -31,38 +34,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Db
             var configName = "akka.persistence.l2db." + config.GetHashCode();
             var fmb = new MappingSchema(configName,MappingSchema.Default)
                 .GetFluentMappingBuilder();
-            var journalRowBuilder = fmb.Entity<JournalRow>()
-                .HasSchemaName(config.TableConfig.SchemaName)
-                .HasTableName(config.TableConfig.TableName)
-                .Member(r => r.deleted).HasColumnName(config
-                    .TableConfig.ColumnNames.Deleted)
-                .Member(r => r.manifest).HasColumnName(config
-                    .TableConfig.ColumnNames.Manifest).HasLength(500)
-                .Member(r => r.message).HasColumnName(config
-                    .TableConfig.ColumnNames.Message)
-                .Member(r => r.ordering).HasColumnName(config
-                    .TableConfig.ColumnNames.Ordering)
-                .Member(r => r.tags).HasLength(100)
-                .HasColumnName(config.TableConfig.ColumnNames.Tags)
-                .Member(r => r.Identifier).HasColumnName(config
-                    .TableConfig.ColumnNames.Identitifer)
-                .Member(r => r.persistenceId).HasColumnName(config
-                    .TableConfig.ColumnNames.PersistenceId).HasLength(255)
-                .Member(r => r.sequenceNumber).HasColumnName(config
-                    .TableConfig.ColumnNames.SequenceNumber)
-                .Member(r=>r.Timestamp).HasColumnName(config.TableConfig.ColumnNames.Created);
-            
-            //Probably overkill, but we only set Metadata Mapping if specified
-            //That we are in delete compatibility mode.
-            if (config.IDaoConfig.DeleteCompatibilityMode)
-            {
-                fmb.Entity<JournalMetaData>().HasTableName(config.TableConfig.MetadataTableName)
-                    .HasSchemaName(config.TableConfig.SchemaName)
-                    .Member(r=>r.PersistenceId).HasColumnName(config.TableConfig.MetadataColumnNames.PersistenceId)
-                    .HasLength(255)
-                    .Member(r=>r.SequenceNumber).HasColumnName(config.TableConfig.MetadataColumnNames.SequenceNumber)
-                    ;
-            }
+            MapJournalRow(config, fmb);
 
             useCloneDataConnection = config.UseCloneConnection;
             mappingSchema = fmb.MappingSchema;
@@ -75,6 +47,109 @@ namespace Akka.Persistence.Sql.Linq2Db.Db
                 policy = new SqlServerRetryPolicy();
             }
             _cloneConnection = new Lazy<DataConnection>(()=>new DataConnection(opts));
+        }
+        
+        public AkkaPersistenceDataConnectionFactory(IProviderConfig<SnapshotTableConfiguration> config)
+        {
+            providerName = config.ProviderName;
+            connString = config.ConnectionString;
+            //Build Mapping Schema to be used for all connections.
+            //Make a unique mapping schema name here to avoid problems
+            //with multiple configurations using different schemas.
+            var configName = "akka.persistence.l2db." + config.GetHashCode();
+            var ms = new MappingSchema(configName, MappingSchema.Default);
+            //ms.SetConvertExpression<DateTime, DateTime>(dt => DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+            var fmb = ms
+                .GetFluentMappingBuilder();
+            MapSnapshotRow(config, fmb);
+
+            useCloneDataConnection = config.UseCloneConnection;
+            mappingSchema = fmb.MappingSchema;
+            opts = new LinqToDbConnectionOptionsBuilder()
+                .UseConnectionString(providerName, connString)
+                .UseMappingSchema(mappingSchema).Build();
+            
+            if (providerName.ToLower().StartsWith("sqlserver"))
+            {
+                policy = new SqlServerRetryPolicy();
+            }
+            _cloneConnection = new Lazy<DataConnection>(()=>new DataConnection(opts));
+        }
+
+        private static void MapSnapshotRow(
+            IProviderConfig<SnapshotTableConfiguration> config,
+            FluentMappingBuilder fmb)
+        {
+            var tableConfig = config.TableConfig;
+            var builder = fmb.Entity<SnapshotRow>()
+                .HasSchemaName(tableConfig.SchemaName)
+                .HasTableName(tableConfig.TableName)
+                .Member(r => r.Created)
+                .HasColumnName(tableConfig.ColumnNames.Created)
+                .Member(r => r.Manifest)
+                .HasColumnName(tableConfig.ColumnNames.Manifest)
+                .HasLength(500)
+                .Member(r => r.Payload)
+                .HasColumnName(tableConfig.ColumnNames.Snapshot)
+                .Member(r => r.SequenceNumber)
+                .HasColumnName(tableConfig.ColumnNames.SequenceNumber)
+                .Member(r => r.SerializerId)
+                .HasColumnName(tableConfig.ColumnNames.SerializerId)
+                .Member(r => r.persistenceId)
+                .HasColumnName(tableConfig.ColumnNames.PersistenceId);
+            if (config.ProviderName.ToLower().Contains("sqlite"))
+            {
+                builder.Member(r => r.Created)
+                    .HasDataType(DataType.Int64)
+                    .HasConversion(r => r.Ticks, r => new DateTime(r));
+            }
+            if (config.IDaoConfig.SqlCommonCompatibilityMode)
+            {
+                
+                //builder.Member(r => r.Created)
+                //    .HasConversion(l => DateTimeHelpers.FromUnixEpochMillis(l),
+                //        dt => DateTimeHelpers.ToUnixEpochMillis(dt));
+            }
+        }
+
+        private static void MapJournalRow(IProviderConfig<JournalTableConfig> config,
+            FluentMappingBuilder fmb)
+        {
+            var tableConfig = config.TableConfig;
+            var journalRowBuilder = fmb.Entity<JournalRow>()
+                .HasSchemaName(tableConfig.SchemaName)
+                .HasTableName(tableConfig.TableName)
+                .Member(r => r.deleted).HasColumnName(tableConfig.ColumnNames.Deleted)
+                .Member(r => r.manifest).HasColumnName(tableConfig.ColumnNames.Manifest)
+                .HasLength(500)
+                .Member(r => r.message).HasColumnName(tableConfig.ColumnNames.Message)
+                .Member(r => r.ordering).HasColumnName(tableConfig.ColumnNames.Ordering)
+                .Member(r => r.tags).HasLength(100)
+                .HasColumnName(tableConfig.ColumnNames.Tags)
+                .Member(r => r.Identifier)
+                .HasColumnName(tableConfig.ColumnNames.Identitifer)
+                .Member(r => r.persistenceId)
+                .HasColumnName(tableConfig.ColumnNames.PersistenceId).HasLength(255)
+                .Member(r => r.sequenceNumber)
+                .HasColumnName(tableConfig.ColumnNames.SequenceNumber)
+                .Member(r => r.Timestamp)
+                .HasColumnName(tableConfig.ColumnNames.Created);
+
+
+            //Probably overkill, but we only set Metadata Mapping if specified
+            //That we are in delete compatibility mode.
+            if (config.IDaoConfig.SqlCommonCompatibilityMode)
+            {
+                fmb.Entity<JournalMetaData>()
+                    .HasTableName(tableConfig.MetadataTableName)
+                    .HasSchemaName(tableConfig.SchemaName)
+                    .Member(r => r.PersistenceId)
+                    .HasColumnName(tableConfig.MetadataColumnNames.PersistenceId)
+                    .HasLength(255)
+                    .Member(r => r.SequenceNumber)
+                    .HasColumnName(tableConfig.MetadataColumnNames.SequenceNumber)
+                    ;
+            }
         }
 
         private Lazy<DataConnection> _cloneConnection;

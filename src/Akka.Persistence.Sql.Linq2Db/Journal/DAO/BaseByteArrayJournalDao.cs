@@ -225,7 +225,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                         var maxMarkedDeletion =
                             await MaxMarkedForDeletionMaxPersistenceIdQuery(db,
                                 persistenceId).FirstOrDefaultAsync();
-                        if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
+                        if (_journalConfig.DaoConfig.SqlCommonCompatibilityMode)
                         {
                             await db.GetTable<JournalMetaData>()
                                 .InsertOrUpdateAsync(() => new JournalMetaData()
@@ -257,7 +257,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                                          )).DeleteAsync();
                         }
 
-                        if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
+                        if (_journalConfig.DaoConfig.SqlCommonCompatibilityMode)
                         {
                             await db.GetTable<JournalMetaData>()
                                 .Where(r =>
@@ -314,7 +314,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal.DAO
                     r.SequenceNumber > minSequenceNumber);
             }
 
-            if (_journalConfig.DaoConfig.DeleteCompatibilityMode)
+            if (_journalConfig.DaoConfig.SqlCommonCompatibilityMode)
             {
                 var nextQuery = db.GetTable<JournalMetaData>()
                     .Where(r =>

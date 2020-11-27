@@ -18,6 +18,29 @@ using Akka.Util.Internal;
 
 namespace Akka.Persistence.Sql.Linq2Db.Journal
 {
+    public class DateTimeHelpers
+    {
+        private static DateTime UnixEpoch = new DateTime(1970,1,1,0,0,0,DateTimeKind.Utc);
+
+        public static long ToUnixEpochMillis(DateTime time)
+        {
+            long unixTime =
+                (long) (time.ToUniversalTime() - UnixEpoch).TotalMilliseconds;
+            return unixTime;
+        }
+        public static long UnixEpochMillis()
+        {
+            long currentTime =
+                (long) (DateTime.UtcNow - UnixEpoch).TotalMilliseconds;
+            return currentTime;
+        }
+
+        public static DateTime FromUnixEpochMillis(in long unixEpochMillis)
+        {
+            return UnixEpoch.AddMilliseconds(unixEpochMillis);
+        }
+    }
+
     public class Linq2DbWriteJournal : AsyncWriteJournal
     {
         public static Configuration.Config DefaultConfiguration =>
@@ -35,8 +58,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
                 _mat = ActorMaterializer.Create(Context,
                     ActorMaterializerSettings.Create(Context.System)
                         .WithDispatcher(_journalConfig.MaterializerDispatcher)
-                    //    .WithDispatcher(
-                    //         "akka.stream.default-blocking-io-dispatcher")
                     ,
                     "l2dbWriteJournal"
                 );
@@ -147,13 +168,12 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             return await _journal.HighestSequenceNr(persistenceId, fromSequenceNr);
         }
         private Dictionary<string,Task> writeInProgress = new Dictionary<string, Task>();
-        private static DateTime UnixEpoch = new DateTime(1970,1,1,0,0,0,DateTimeKind.Utc);
+        
         protected override async Task<IImmutableList<Exception>>
             WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
         {
             //TODO: CurrentTimeMillis;
-            long currentTime =
-                (long) (DateTime.UtcNow - UnixEpoch).TotalMilliseconds;
+            var currentTime = DateTimeHelpers.UnixEpochMillis();
             var persistenceId = messages.Head().PersistenceId;
             var future = _journal.AsyncWriteMessages(messages,currentTime);
             

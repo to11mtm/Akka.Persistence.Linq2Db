@@ -2,7 +2,7 @@
 
 namespace Akka.Persistence.Sql.Linq2Db.Config
 {
-    public class ReadJournalConfig : IProviderConfig
+    public class ReadJournalConfig : IProviderConfig<JournalTableConfig>
     {
         public ReadJournalConfig(Configuration.Config config)
         {
