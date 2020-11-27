@@ -1,8 +1,8 @@
 <Project>
     <PropertyGroup>
-        <AssemblyVersion>0.9.6</AssemblyVersion>
-        <FileVersion>0.9.6</FileVersion>
-        <Version>0.9.6</Version>
+        <AssemblyVersion>0.9.8</AssemblyVersion>
+        <FileVersion>0.9.8</FileVersion>
+        <Version>0.9.8</Version>
         <Authors>Gluten Free Solutions</Authors>
         <Description>Akka.NET SQL Journal Utilizing Akka Streams and Linq2Db</Description>
         <Copyright>Copyright 2020, Gluten Free Solutions</Copyright>
@@ -10,8 +10,8 @@
         <PackageLicenseUrl>https://github.com/to11mtm/Akka.Persistence.Linq2Db/blob/master/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/to11mtm/Akka.Persistence.Linq2Db</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageTags>akka persistence sql linq2db</PackageTags>
-        <PackageReleaseNotes>PreRelease</PackageReleaseNotes>
+        <PackageTags>akka persistence sql linq2db journal</PackageTags>
+        <PackageReleaseNotes>PreRelease - Consolidate to single Lib</PackageReleaseNotes>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <PropertyGroup>

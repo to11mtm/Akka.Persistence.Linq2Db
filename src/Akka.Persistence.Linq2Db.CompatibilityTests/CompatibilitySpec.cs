@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
 using Akka.TestKit.Xunit2.Internals;
+using JetBrains.dotMemoryUnit;
+using JetBrains.dotMemoryUnit.Kernel;
 using Xunit;
 using Xunit.Abstractions;
 using Config = Docker.DotNet.Models.Config;
@@ -11,6 +14,8 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
 {
     public abstract class CompatibilitySpec
     {
+        
+
         public CompatibilitySpec(ITestOutputHelper outputHelper)
         {
             Output = outputHelper;

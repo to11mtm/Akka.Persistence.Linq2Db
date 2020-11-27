@@ -10,7 +10,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
             string providername, string connectionstring) => @$"
 akka.persistence.journal.linq2db{{
   {customJournalName} {{
-  class = ""Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db.Journal""
+  class = ""Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db""
   provider-name = ""{providername}""
     connection-string = ""{connectionstring}""
  tables{{
@@ -39,7 +39,7 @@ akka.persistence.journal.linq2db {{
 }}
 ";
 
-        public static Config GetCustomConfig(string configName,
+        public static Configuration.Config GetCustomConfig(string configName,
             string journalTableName,
             string metadataTableName, string providerName,
             string connectionString, bool asDefault)
@@ -56,7 +56,7 @@ akka{{
 }}":"")).WithFallback(Linq2DbWriteJournal.DefaultConfiguration);
         }
 
-        public static Config GetConfig(string tableName,
+        public static Configuration.Config GetConfig(string tableName,
             string metadatatablename, string providername, string connectionString)
         {
             return ConfigurationFactory

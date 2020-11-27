@@ -14,6 +14,7 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
    - ICurrentEventsByPersistenceIdQuery
    - IEventsByTagQuery
    - ICurrentEventsByTagQuery
+ - Snapshot Store Support
 
 #### This is still a WORK IN PROGRESS
 
@@ -23,11 +24,14 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
  
    - Persistence
    - Recovery
+   - Snapshots
  
  Not Yet Implemented:
  
-  - Snapshots
-    - You can use existing Snapshot plugins in meantime. We intend to maintain compatibility with existing SQL snapshot libs.
+  - Full Snapshot Backwards Compatibility with Sql.Common:
+    - In theory SQL Server and SQLite should be compatible, however:
+      - Column Names must be manually set in configuration
+      - Tests have not been created
     
     
 ## Features/Architecture:
@@ -43,16 +47,28 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
    - `provider-name` is a `LinqToDb.ProviderName`
      - This handles DB Type mapping and Dialect-specific query building
  
+ - language-ext is used in place of Systems.Collections.Immutable where appropriate
+   - Lower memory allocations, improve performance
+ 
  - Recovery is also batched:
    - Up to `replay-batch-size` messages are fetched at a time
     - This is to both lower size of records fetched in single pass, as well as to prevent pulling too much data into memory at once.
    - If more messages are to be recovered, additional passes will be made.
- 
 
+ - Attempts to stay in spirit and Structure of JDBC Port with a few differences:
+   - Linq2Db isn't a Reactive Streams Compatible DB Provider (I don't know of any that are at this time for .NET)
+     - This means Some of the Query architecture is different, to deal with required semantic changes (i.e. Connection scoping)
+   - Both due to above and differences between Scala and C#, Some changes have been made for optimal performance (i.e. memory, GC)
+     - Classes used in place of ValueTuples in certain areas
+     - We don't have separate Query classes at this time. This can definitely be improved in future
+     - A couple of places around `WriteMessagesAsync` have had their logic moved to facilitate performance (i.e. use of `await` instead of `ContinueWith`)
+ 
 ## Currently Implemented:
 
 - Journal
-  - With `JournalSpec` and `JournalPerfSpec` passing for MS SQL Server, Microsoft.Data.SQLite, and Postgres 
+  - With `JournalSpec` and `JournalPerfSpec` passing for MS SQL Server, Microsoft.Data.SQLite, and Postgres
+- Snapshot Store
+  - With `SnapshotStoreSpec' passing for MS SQL Server, Microsoft.Data.SQLite
 - Configuration
   - Only Functional tests at this time.
   - Custom provider configurations are supported.
@@ -61,8 +77,8 @@ This is a Fairly-Naive port of the amazing akka-persistence-jdbc package from Sc
 
 - Tests for Schema Usage
 - Fine tuning of multirow/bulk numbers for linq2db
-- SnapshotStore
-- Journal Queries (i.e. Tag queries. Tags are properly persisted at this time.)
+- Full SnapshotStore Backwards Compatibility with Akka.Persistence.Sql.Common
+- Some Akka.NET specfic Journal Queries (those not mentioned above)
 - Cleanup of Configuration classes/fallbacks.
   - Should still be usable in most common scenarios including multiple configuration instances: see `SqlServerCustomConfigSpec` for test and examples.
 
@@ -115,19 +131,20 @@ Please note that you -must- provide a Connection String and Provider name.
    - If you don't have a password or similar, run some tests with it set to `true`. You'll see improved write and read performance.
  - For Table Configuration:
    - Note that Tables/Columns will be created with the casing provided, and selected in the same way (i.e. if using a DB with case sensitive columns, be careful!)
-   - The 'created/timestamp' column is not actually used. Because of the nature of batched writes (and lack of guidance from jdbc library, feature appears to not be implemented there) we always use 0.
-     - The column was kept to maximize compatibility with Existing SQL Journals.
-
+   
 ```hocon
 akka.persistence {
   publish-plugin-commands = on
   journal {
     plugin = "akka.persistence.journal.linq2db"
     linq2db {
-      class = "Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db.Journal"
+      class = "Akka.Persistence.Sql.Linq2Db.Journal.Linq2DbWriteJournal, Akka.Persistence.Sql.Linq2Db"
       plugin-dispatcher = "akka.persistence.dispatchers.default-plugin-dispatcher"
       connection-string = "" # Connection String is Required!
 
+      # This dispatcher will be used for the Stream Materializers
+      materializer-dispatcher = "akka.actor.default-dispatcher"
+      
       # Provider name is required.
       # Refer to LinqToDb.ProviderName for values
       # Always use a specific version if possible
@@ -245,4 +262,41 @@ akka.persistence {
   }
 }
 
+```
+
+### Snapshot Store:
+
+Please note that you -must- provide a Connection String and Provider name.
+
+- Refer to the Members of `LinqToDb.ProviderName` for included providers.
+    - Note: For best performance, one should use the most specific provider name possible. i.e. `LinqToDB.ProviderName.SqlServer2012` instead of `LinqToDB.ProviderName.SqlServer`. Otherwise certain provider detections have to run more frequently which may impair performance slightly.
+```hocon
+akka.persistence {
+  snapshot-store
+    {
+      plugin = "akka.persistence.snapshot-store.linq2db"
+      linq2db {
+        class = "Akka.Persistence.Sql.Linq2Db.Snapshot.Linq2DbSnapshotStore"
+        plugin-dispatcher = "akka.persistence.dispatchers.default-plugin-dispatcher"
+        connection-string = ""
+        provider-name = ""
+        use-clone-connection = false
+        table-compatibility-mode = false
+        tables.snapshot
+          {
+            schema-name = null
+            table-name = "snapshot"
+            auto-init = true
+            column-names {
+              persistenceId = "persistence_id"
+              sequenceNumber = "sequence_number"
+              created = "created"
+              snapshot = "snapshot"
+              manifest = "manifest"
+              serializerId = "serializer_id"
+            }
+          }
+      }
+    }
+}
 ```

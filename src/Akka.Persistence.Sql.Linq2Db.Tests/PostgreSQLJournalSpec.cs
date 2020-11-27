@@ -1,7 +1,8 @@
 ﻿using System;
 using Akka.Configuration;
+using Akka.Persistence.Sql.Linq2Db.Config;
+using Akka.Persistence.Sql.Linq2Db.Db;
 using Akka.Persistence.Sql.Linq2Db.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.Sql.Linq2Db.Tests.Docker;
 using Akka.Persistence.TCK.Journal;
@@ -40,7 +41,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
             }}
         ";
         
-        public static Config Create(string connString)
+        public static Configuration.Config Create(string connString)
         {
             return ConfigurationFactory.ParseString(
                 string.Format(_journalBaseConfig,
@@ -67,7 +68,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
             Initialize();
         }
             
-        public static Config InitConfig(PostgreSQLFixture fixture)
+        public static Configuration.Config InitConfig(PostgreSQLFixture fixture)
         {
             //need to make sure db is created before the tests start
             //DbUtils.Initialize(fixture.ConnectionString);

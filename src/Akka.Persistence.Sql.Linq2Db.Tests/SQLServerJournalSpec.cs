@@ -1,7 +1,8 @@
 ﻿using System;
 using Akka.Configuration;
+using Akka.Persistence.Sql.Linq2Db.Config;
+using Akka.Persistence.Sql.Linq2Db.Db;
 using Akka.Persistence.Sql.Linq2Db.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.TCK.Journal;
 using LinqToDB;
@@ -12,7 +13,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Tests
     public class SQLServerJournalSpec : JournalSpec
     {
 
-        private static readonly  Config conf = SQLServerJournalSpecConfig.Create(ConnectionString.Instance,"journalSpec");
+        private static readonly  Configuration.Config conf = SQLServerJournalSpecConfig.Create(ConnectionString.Instance,"journalSpec");
         public SQLServerJournalSpec(ITestOutputHelper outputHelper)
             : base(conf, "SQLServer", outputHelper)
         {

@@ -9,7 +9,6 @@
     <ItemGroup>
         <PackageReference Include="Akka.Persistence.Sqlite" Version="1.4.10" />
         <PackageReference Include="Akka.Persistence.TCK" Version="1.4.10" />
-        <PackageReference Include="linq2db" Version="3.1.2" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.7" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="xunit" Version="2.4.1" />
@@ -18,7 +17,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db.Journal.Query\Akka.Persistence.Sql.Linq2Db.Journal.Query.csproj" />
+      <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db\Akka.Persistence.Sql.Linq2Db.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="linq2db, Version=3.0.0.0, Culture=neutral, PublicKeyToken=e41013125f9e410a">
+        <HintPath>..\..\..\linq2db\Source\LinqToDB\bin\Release\netstandard2.1\linq2db.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

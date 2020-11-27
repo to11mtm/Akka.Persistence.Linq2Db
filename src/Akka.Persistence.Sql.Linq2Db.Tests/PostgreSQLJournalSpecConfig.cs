@@ -24,7 +24,7 @@ plugin-dispatcher = ""akka.persistence.dispatchers.default-plugin-dispatcher""
             }}
         ";
         
-        public static Config Create(string connString, string providerName)
+        public static Configuration.Config Create(string connString, string providerName)
         {
             return ConfigurationFactory.ParseString(
                 string.Format(_journalBaseConfig,

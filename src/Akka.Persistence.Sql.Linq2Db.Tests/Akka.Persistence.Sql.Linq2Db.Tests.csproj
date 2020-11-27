@@ -30,8 +30,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db.Journal\Akka.Persistence.Sql.Linq2Db.Journal.csproj" />
       <ProjectReference Include="..\Akka.Persistence.Sql.Linq2Db\Akka.Persistence.Sql.Linq2Db.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="linq2db, Version=3.0.0.0, Culture=neutral, PublicKeyToken=e41013125f9e410a">
+        <HintPath>..\..\..\linq2db\Source\LinqToDB\bin\Release\netstandard2.1\linq2db.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

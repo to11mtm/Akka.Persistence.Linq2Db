@@ -1,7 +1,8 @@
 ﻿using System;
 using Akka.Persistence.Sql.Linq2Db;
+using Akka.Persistence.Sql.Linq2Db.Config;
+using Akka.Persistence.Sql.Linq2Db.Db;
 using Akka.Persistence.Sql.Linq2Db.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Config;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.Sql.Linq2Db.Tests;
 using Akka.Util.Internal;
@@ -17,7 +18,7 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db
         
         //private static string  connString = "FullUri=file:memdb"+counter.IncrementAndGet() +"?mode=memory&cache=shared";
         private static string connString =
-            "Filename=file:memdb-journal-" + counter.IncrementAndGet() +
+            "Filename=file:test-journal-" + counter.IncrementAndGet() +
             ".db;Mode=Memory;Cache=Shared";
 
         private static SqliteConnection heldSqliteConnection =
@@ -38,7 +39,6 @@ namespace Akka.Persistence.Linq2Db.BenchmarkTests.Local.Linq2Db
         public MSSQLiteLinq2DbJournalPerfSpec(ITestOutputHelper output)
             : base(SQLiteJournalSpecConfig.Create(connString, ProviderName.SQLiteMS), "SqliteJournalSpec", output,eventsCount: TestConstants.NumMessages)
         {
-            
             heldSqliteConnection.Open();
             //InitWALForFileDb();
             var conf = new JournalConfig(

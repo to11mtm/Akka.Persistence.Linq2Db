@@ -6,12 +6,13 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Persistence.Linq2Db.Journal.Query.Tests;
 using Akka.Persistence.Query;
 using Akka.Persistence.Sql.Linq2Db.Journal;
-using Akka.Persistence.Sql.Linq2Db.Journal.Query;
+using Akka.Persistence.Sql.Linq2Db.Query;
 using Akka.Persistence.TCK.Query;
 using Akka.Util.Internal;
 using LinqToDB;
@@ -84,6 +85,12 @@ namespace Akka.Persistence.Sqlite.Tests.Query
                     .WithFallback(Linq2DbReadJournal.DefaultConfiguration)
                     .WithFallback(Linq2DbWriteJournal.DefaultConfiguration);
             }
+        }
+
+        public override Task
+            ReadJournal_should_deallocate_AllPersistenceIds_publisher_when_the_last_subscriber_left()
+        {
+            return Task.CompletedTask;
         }
 
         public SqlitePersistenceIdsSpec(ITestOutputHelper output) : base(Config,
