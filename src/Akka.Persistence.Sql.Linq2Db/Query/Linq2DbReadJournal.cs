@@ -13,6 +13,7 @@ using Akka.Persistence.Sql.Linq2Db.Journal.DAO;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
 using Akka.Persistence.Sql.Linq2Db.Query.Dao;
 using Akka.Persistence.Sql.Linq2Db.Query.InternalProtocol;
+using Akka.Persistence.Sql.Linq2Db.Utility;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using LanguageExt;
@@ -58,7 +59,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Query
             this.system = system;
             var connFact =
                 new AkkaPersistenceDataConnectionFactory(readJournalConfig);
-            _mat = ActorMaterializer.Create(system,
+            _mat = Materializer.CreateSystemMaterializer(system,
                 ActorMaterializerSettings.Create(system),
                 "l2db-query-mat" + configPath);
             readJournalDao = new ByteArrayReadJournalDao(

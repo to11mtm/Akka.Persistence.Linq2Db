@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Akka.Actor;
 using Akka.Configuration;
 using Akka.Event;
 using Akka.Persistence.Snapshot;
 using Akka.Persistence.Sql.Linq2Db.Config;
 using Akka.Persistence.Sql.Linq2Db.Db;
 using Akka.Persistence.Sql.Linq2Db.Journal;
+using Akka.Persistence.Sql.Linq2Db.Utility;
 using Akka.Streams;
 using Akka.Util;
 
@@ -25,7 +27,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             _dao = new ByteArraySnapshotDao(
                 new AkkaPersistenceDataConnectionFactory(_snapshotConfig),
                 _snapshotConfig, Context.System.Serialization,
-                ActorMaterializer.Create(Context.System), Context.GetLogger());
+                Materializer.CreateSystemMaterializer((ExtendedActorSystem)Context.System), Context.GetLogger());
             if (_snapshotConfig.TableConfig.AutoInitialize)
             {
                 try

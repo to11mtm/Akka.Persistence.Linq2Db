@@ -11,6 +11,7 @@ using Akka.Persistence.Sql.Linq2Db.Config;
 using Akka.Persistence.Sql.Linq2Db.Db;
 using Akka.Persistence.Sql.Linq2Db.Journal.DAO;
 using Akka.Persistence.Sql.Linq2Db.Journal.Types;
+using Akka.Persistence.Sql.Linq2Db.Utility;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util;
@@ -55,7 +56,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             try
             {
                 _journalConfig = new JournalConfig(config);
-                _mat = ActorMaterializer.Create(Context,
+                _mat = Materializer.CreateSystemMaterializer((ExtendedActorSystem)Context.System,
                     ActorMaterializerSettings.Create(Context.System)
                         .WithDispatcher(_journalConfig.MaterializerDispatcher)
                     ,

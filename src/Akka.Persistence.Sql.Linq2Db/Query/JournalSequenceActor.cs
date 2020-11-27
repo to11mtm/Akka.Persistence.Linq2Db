@@ -5,6 +5,7 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.Persistence.Sql.Linq2Db.Config;
 using Akka.Persistence.Sql.Linq2Db.Query.InternalProtocol;
+using Akka.Persistence.Sql.Linq2Db.Utility;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util.Extensions;
@@ -25,7 +26,8 @@ namespace Akka.Persistence.Sql.Linq2Db.Query
         public JournalSequenceActor(IReadJournalDAO readJournalDao,
             JournalSequenceRetrievalConfig config)
         {
-            _mat = ActorMaterializer.Create(Context,
+            _mat = 
+                Materializer.CreateSystemMaterializer((ExtendedActorSystem)Context.System,
                 ActorMaterializerSettings.Create(Context.System),
                 "linq2db-query");
             _readJournalDao = readJournalDao;
