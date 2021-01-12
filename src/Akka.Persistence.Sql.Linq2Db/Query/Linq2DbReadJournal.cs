@@ -153,7 +153,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Query
                 .SelectMany((ReplayCompletion r) => _adaptEvents(r.repr)
                     .Select(p => new {repr = r.repr, ordNr = r.Ordering}))
                 .Select(r => new EventEnvelope(new Sequence(r.ordNr),
-                    r.repr.PersistenceId, r.repr.SequenceNr, r.repr.Payload));
+                    r.repr.PersistenceId, r.repr.SequenceNr, r.repr.Payload, r.repr.Timestamp));
         }
 
         public Source<EventEnvelope, NotUsed> CurrentEventsByTag(string tag,
@@ -183,7 +183,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Query
                         return _adaptEvents(a.Item1).Select(r =>
                             new EventEnvelope(new Sequence(a.Item3),
                                 r.PersistenceId,
-                                r.SequenceNr, r.Payload));
+                                r.SequenceNr, r.Payload, r.Timestamp));
                     });
         }
 
