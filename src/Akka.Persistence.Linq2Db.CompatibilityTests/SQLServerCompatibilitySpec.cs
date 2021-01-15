@@ -2,9 +2,9 @@
 
 namespace Akka.Persistence.Linq2Db.CompatibilityTests
 {
-    public class SQLServerCompatibilitySpec : CompatibilitySpec
+    public class SQLServerJournalCompatibilitySpec : SqlCommonJournalCompatibilitySpec
     {
-        public SQLServerCompatibilitySpec(ITestOutputHelper outputHelper) : base(outputHelper)
+        public SQLServerJournalCompatibilitySpec(ITestOutputHelper outputHelper) : base(outputHelper)
         {
         }
 
@@ -15,7 +15,7 @@ namespace Akka.Persistence.Linq2Db.CompatibilityTests
             "akka.persistence.journal.testspec";
 
         protected override Configuration.Config Config =>
-            SqlServerCompatibilitySpecConfig.InitConfig("journal_compat",
+            SqlServerCompatibilitySpecConfig.InitJournalConfig("journal_compat",
                 "journal_metadata_compat");
     }
 }

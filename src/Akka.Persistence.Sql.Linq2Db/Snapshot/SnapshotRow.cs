@@ -11,7 +11,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
     {
         [PrimaryKey]
         [NotNull]
-        public string persistenceId { get; set; }
+        public string PersistenceId { get; set; }
         [PrimaryKey]
         public long SequenceNumber { get; set; }
         [Column(DataType = DataType.DateTime2)]

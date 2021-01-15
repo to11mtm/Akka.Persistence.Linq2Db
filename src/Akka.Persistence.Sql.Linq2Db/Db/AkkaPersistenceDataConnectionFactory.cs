@@ -31,7 +31,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Db
             //Build Mapping Schema to be used for all connections.
             //Make a unique mapping schema name here to avoid problems
             //with multiple configurations using different schemas.
-            var configName = "akka.persistence.l2db." + config.GetHashCode();
+            var configName = "akka.persistence.l2db." + HashCode.Combine(config.ConnectionString, config.ProviderName, config.TableConfig.GetHashCode());
             var fmb = new MappingSchema(configName,MappingSchema.Default)
                 .GetFluentMappingBuilder();
             MapJournalRow(config, fmb);
@@ -56,7 +56,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Db
             //Build Mapping Schema to be used for all connections.
             //Make a unique mapping schema name here to avoid problems
             //with multiple configurations using different schemas.
-            var configName = "akka.persistence.l2db." + config.GetHashCode();
+            var configName = "akka.persistence.l2db." + HashCode.Combine(config.ConnectionString, config.ProviderName, config.TableConfig.GetHashCode());
             var ms = new MappingSchema(configName, MappingSchema.Default);
             //ms.SetConvertExpression<DateTime, DateTime>(dt => DateTime.SpecifyKind(dt, DateTimeKind.Utc));
             var fmb = ms
@@ -95,9 +95,10 @@ namespace Akka.Persistence.Sql.Linq2Db.Db
                 .HasColumnName(tableConfig.ColumnNames.SequenceNumber)
                 .Member(r => r.SerializerId)
                 .HasColumnName(tableConfig.ColumnNames.SerializerId)
-                .Member(r => r.persistenceId)
-                .HasColumnName(tableConfig.ColumnNames.PersistenceId);
-            if (config.ProviderName.ToLower().Contains("sqlite"))
+                .Member(r => r.PersistenceId)
+                .HasColumnName(tableConfig.ColumnNames.PersistenceId)
+                .HasLength(255);
+            if (config.ProviderName.ToLower().Contains("sqlite")||config.ProviderName.ToLower().Contains("postgres"))
             {
                 builder.Member(r => r.Created)
                     .HasDataType(DataType.Int64)
@@ -122,19 +123,30 @@ namespace Akka.Persistence.Sql.Linq2Db.Db
                 .Member(r => r.deleted).HasColumnName(tableConfig.ColumnNames.Deleted)
                 .Member(r => r.manifest).HasColumnName(tableConfig.ColumnNames.Manifest)
                 .HasLength(500)
-                .Member(r => r.message).HasColumnName(tableConfig.ColumnNames.Message)
+                .Member(r => r.message).HasColumnName(tableConfig.ColumnNames.Message).IsNullable(false)
                 .Member(r => r.ordering).HasColumnName(tableConfig.ColumnNames.Ordering)
                 .Member(r => r.tags).HasLength(100)
                 .HasColumnName(tableConfig.ColumnNames.Tags)
                 .Member(r => r.Identifier)
                 .HasColumnName(tableConfig.ColumnNames.Identitifer)
                 .Member(r => r.persistenceId)
-                .HasColumnName(tableConfig.ColumnNames.PersistenceId).HasLength(255)
+                .HasColumnName(tableConfig.ColumnNames.PersistenceId).HasLength(255).IsNullable(false)
                 .Member(r => r.sequenceNumber)
                 .HasColumnName(tableConfig.ColumnNames.SequenceNumber)
                 .Member(r => r.Timestamp)
                 .HasColumnName(tableConfig.ColumnNames.Created);
 
+            if (config.ProviderName.ToLower().Contains("sqlite"))
+            {
+                journalRowBuilder.Member(r => r.ordering).IsPrimaryKey().HasDbType("INTEGER")
+                    .IsIdentity();
+            }
+            else
+            {
+                journalRowBuilder.Member(r => r.ordering).IsIdentity()
+                    .Member(r=>r.persistenceId).IsPrimaryKey()
+                    .Member(r=>r.sequenceNumber).IsPrimaryKey();
+            }
 
             //Probably overkill, but we only set Metadata Mapping if specified
             //That we are in delete compatibility mode.

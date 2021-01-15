@@ -31,7 +31,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
                 .GetConfig($"tables.journal.{colString}").SafeWithFallback(
                     ConfigurationFactory.ParseString(FallBack).GetConfig($"tables.journal.{colString}"));
             //var cfg =  config.GetConfig("tables.journal.metadata-column-names").SafeWithFallback(ConfigurationFactory.ParseString(FallBack).GetConfig("tables.journal.metadata-column-names"));
-            PersistenceId =  cfg.GetString("persistenceId", "persistenceId");
+            PersistenceId =  cfg.GetString("PersistenceId", "PersistenceId");
             SequenceNumber = cfg.GetString("sequenceNumber", "sequenceNr");
         }
         protected bool Equals(MetadataTableColumnNames other)
@@ -56,19 +56,19 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
         
         public static readonly string FallBack = @"tables.journal{
     metadata-column-names {
-        ""persistenceId"" = ""persistenceId""
+        ""PersistenceId"" = ""PersistenceId""
         ""sequenceNumber"" = ""sequenceNr""
     }
     sqlserver-compat-metadata-column-names {
-        ""persistenceId"" = ""persistenceId""
+        ""PersistenceId"" = ""PersistenceId""
         ""sequenceNumber"" = ""sequenceNr""
     }
     sqlite-compat-metadata-column-names {
-        ""persistenceId"" = ""persistence_Id""
+        ""PersistenceId"" = ""persistence_Id""
         ""sequenceNumber"" = ""sequence_nr""
     }
     postgres-compat-metadata-column-names {
-        ""persistenceId"" = ""persistence_id""
+        ""PersistenceId"" = ""persistence_id""
         ""sequenceNumber"" = ""sequence_nr""
     }
 }";

@@ -21,10 +21,6 @@ namespace Akka.Persistence.Sql.Linq2Db.Utility
             {
                 return new Util.Try<List<T>>(e);
             }
-            //return Akka.Util.Try<List<T>>.From(()=>
-            //{
-            //    return seq.Select(r => r.Get()).ToList();
-            //});
         }
         public static Akka.Util.Try<Seq<T>> SequenceSeq<T>(IEnumerable<Akka.Util.Try<T>> seq) 
         {

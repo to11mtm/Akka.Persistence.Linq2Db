@@ -32,7 +32,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
                     ConfigurationFactory.ParseString(FallBack).GetConfig($"tables.journal.{colString}"));
             Ordering =       cfg.GetString("ordering","ordering");
             Deleted =        cfg.GetString("deleted","deleted");
-            PersistenceId =  cfg.GetString("persistenceId", "persistence_id");
+            PersistenceId =  cfg.GetString("PersistenceId", "persistence_id");
             SequenceNumber = cfg.GetString("sequenceNumber", "sequence_number");
             Created =        cfg.GetString("created", "created");
             Tags =           cfg.GetString("tags", "tags");
@@ -88,7 +88,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
     sqlserver-compat-column-names {
           ""ordering"" = ""ordering""
         ""deleted"" = ""isdeleted""
-        ""persistenceId"" = ""persistenceId""
+        ""PersistenceId"" = ""PersistenceId""
         ""sequenceNumber"" = ""sequenceNr""
         ""created"" = ""Timestamp""
         ""tags"" = ""tags""
@@ -99,7 +99,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
     sqlite-compat-column-names {
     ""ordering"" = ""ordering""
     ""deleted"" = ""is_deleted""
-    ""persistenceId"" = ""persistence_Id""
+    ""PersistenceId"" = ""persistence_Id""
     ""sequenceNumber"" = ""sequence_nr""
     ""created"" = ""Timestamp""
     ""tags"" = ""tags""
@@ -110,7 +110,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Config
 postgres-compat-column-names {
           ""ordering"" = ""ordering""
         ""deleted"" = ""is_deleted""
-        ""persistenceId"" = ""persistence_id""
+        ""PersistenceId"" = ""persistence_id""
         ""sequenceNumber"" = ""sequence_nr""
         ""created"" = ""created_at""
         ""tags"" = ""tags""

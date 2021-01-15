@@ -29,7 +29,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
         }
         protected SelectedSnapshot ReadSnapshot(SnapshotRow reader)
         {
-            var metadata = new SnapshotMetadata(reader.persistenceId, reader.SequenceNumber, reader.Created);
+            var metadata = new SnapshotMetadata(reader.PersistenceId, reader.SequenceNumber, reader.Created);
             var snapshot = GetSnapshot(reader);
 
             return new SelectedSnapshot(metadata, snapshot);
@@ -75,7 +75,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
                 }
             }
             return new SnapshotRow()
-            {persistenceId= metadata.PersistenceId,
+            {PersistenceId= metadata.PersistenceId,
                 SequenceNumber= metadata.SequenceNr,
                 Created= metadata.Timestamp,
                 Manifest= manifest,

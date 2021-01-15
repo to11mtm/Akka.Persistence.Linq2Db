@@ -50,7 +50,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             using (var conn = _connectionFactory.GetConnection())
             {
                 await conn.GetTable<SnapshotRow>()
-                    .Where(r => r.persistenceId == persistenceId)
+                    .Where(r => r.PersistenceId == persistenceId)
                     .DeleteAsync();
             }
         }
@@ -61,7 +61,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             {
                 await conn.GetTable<SnapshotRow>()
                     .Where(r =>
-                        r.persistenceId == persistenceId &&
+                        r.PersistenceId == persistenceId &&
                         r.SequenceNumber <= maxSequenceNr).DeleteAsync();
             }
         }
@@ -72,7 +72,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             {
                 await conn.GetTable<SnapshotRow>()
                     .Where(r =>
-                        r.persistenceId == persistenceId &&
+                        r.PersistenceId == persistenceId &&
                         r.Created <= maxTimestamp).DeleteAsync();
             }
         }
@@ -84,7 +84,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             {
                 await conn.GetTable<SnapshotRow>()
                     .Where(r =>
-                        r.persistenceId == persistenceId &&
+                        r.PersistenceId == persistenceId &&
                         r.SequenceNumber <= maxSequenceNr &&
                         r.Created <= maxTimestamp).DeleteAsync();
             }
@@ -95,7 +95,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             using (var conn = _connectionFactory.GetConnection())
             {
                 var row = await conn.GetTable<SnapshotRow>()
-                    .Where(r => r.persistenceId == persistenceId)
+                    .Where(r => r.PersistenceId == persistenceId)
                     .OrderByDescending(t => t.SequenceNumber)
                     .FirstOrDefaultAsync();
                 if (row != null)
@@ -111,7 +111,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             using (var conn = _connectionFactory.GetConnection())
             {
                 var row = await conn.GetTable<SnapshotRow>()
-                    .Where(r => r.persistenceId == persistenceId && r.Created <= timestamp)
+                    .Where(r => r.PersistenceId == persistenceId && r.Created <= timestamp)
                     .OrderByDescending(t => t.SequenceNumber)
                     .FirstOrDefaultAsync();
                 if (row != null)
@@ -127,7 +127,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             using (var conn = _connectionFactory.GetConnection())
             {
                 var row = await conn.GetTable<SnapshotRow>()
-                    .Where(r => r.persistenceId == persistenceId && r.SequenceNumber <= sequenceNr)
+                    .Where(r => r.PersistenceId == persistenceId && r.SequenceNumber <= sequenceNr)
                     .OrderByDescending(t => t.SequenceNumber)
                     .FirstOrDefaultAsync();
                 if (row != null)
@@ -144,7 +144,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             using (var conn = _connectionFactory.GetConnection())
             {
                 var row = await conn.GetTable<SnapshotRow>()
-                    .Where(r => r.persistenceId == persistenceId && r.SequenceNumber <= sequenceNr && r.Created <= timestamp)
+                    .Where(r => r.PersistenceId == persistenceId && r.SequenceNumber <= sequenceNr && r.Created <= timestamp)
                     .OrderByDescending(t => t.SequenceNumber)
                     .FirstOrDefaultAsync();
                 if (row != null)
@@ -160,7 +160,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Snapshot
             using (var conn = _connectionFactory.GetConnection())
             {
                 var row = await conn.GetTable<SnapshotRow>()
-                    .Where(r => r.persistenceId == persistenceId && r.SequenceNumber == sequenceNr)
+                    .Where(r => r.PersistenceId == persistenceId && r.SequenceNumber == sequenceNr)
                     .DeleteAsync();
             }
         }

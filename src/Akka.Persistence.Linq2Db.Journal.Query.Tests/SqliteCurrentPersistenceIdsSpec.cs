@@ -24,7 +24,7 @@ namespace Akka.Persistence.Sqlite.Tests.Query
 
         public static Config Config(int id)
         {
-            var connString = $"Filename=file:memdb-journal-currentpersistenceids-{id}.db;Mode=Memory;Cache=Shared";
+            var connString = $"Filename=file:memdb-l2db-journal-currentpersistenceids-{id}.db;Mode=Memory;Cache=Shared";
             ConnectionContext.Remember(connString);
             return ConfigurationFactory.ParseString($@"
             akka.loglevel = INFO
@@ -37,18 +37,24 @@ namespace Akka.Persistence.Sqlite.Tests.Query
                 provider-name = ""{ProviderName.SQLiteMS}""
                 connection-string = ""{connString}""
                 refresh-interval = 1s
-                tables{{
-                  journal{{
-                       auto-init = true
-                  }}
+                tables {{
+                   journal {{
+                     table-name = event_journal
+                     metadata-table-name = journal_metadata
+                     auto-init = true 
+                   }} 
                 }}
             }}
             akka.persistence.query.journal.linq2db
             {{
                 provider-name = ""{ProviderName.SQLiteMS}""
                 connection-string = ""{connString}""
-                table-name = event_journal
-                metadata-table-name = journal_metadata
+                tables {{
+                   journal {{
+                     table-name = event_journal
+                     metadata-table-name = journal_metadata 
+                   }} 
+                }}
             }}
             akka.test.single-expect-default = 10s")
                 .WithFallback(Linq2DbReadJournal.DefaultConfiguration)

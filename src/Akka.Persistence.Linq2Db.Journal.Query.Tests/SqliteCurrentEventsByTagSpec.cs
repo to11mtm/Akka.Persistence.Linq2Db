@@ -25,7 +25,7 @@ namespace Akka.Persistence.Sqlite.Tests.Query
         public static Config Config(int id)
         {
             var connectionString =
-                 $"Filename=file:memdb-journal-currenteventsbytag-{id}.db;Mode=Memory;Cache=Shared";
+                 $"Filename=file:memdb-l2db-journal-currenteventsbytag-{id}.db;Mode=Memory;Cache=Shared";
             ConnectionContext.Remember(connectionString);
          return    ConfigurationFactory.ParseString($@"
             akka.loglevel = INFO
@@ -48,10 +48,12 @@ namespace Akka.Persistence.Sqlite.Tests.Query
                 provider-name = ""{ProviderName.SQLiteMS}""
                 connection-string = ""{connectionString}""
                 refresh-interval = 1s
-                tables{{
-                  journal{{
-                       auto-init = true
-                  }}
+                tables {{
+                   journal {{
+                     table-name = event_journal
+                     metadata-table-name = journal_metadata
+                     auto-init = true 
+                   }} 
                 }}
             }}
             }}
@@ -59,8 +61,12 @@ namespace Akka.Persistence.Sqlite.Tests.Query
             {{
                 provider-name = ""{ProviderName.SQLiteMS}""
                 connection-string = ""{connectionString}""
-                table-name = event_journal
-                metadata-table-name = journal_metadata
+                tables {{
+                   journal {{
+                     table-name = event_journal
+                     metadata-table-name = journal_metadata
+                   }} 
+                }}
             }}
             akka.test.single-expect-default = 10s")
                 .WithFallback(Linq2DbWriteJournal.DefaultConfiguration)
@@ -72,9 +78,10 @@ namespace Akka.Persistence.Sqlite.Tests.Query
             ReadJournal = Sys.ReadJournalFor<Linq2DbReadJournal>(Linq2DbReadJournal.Identifier);
         }
 
-        [Fact(Skip = "Test work good, but raises an exception")]
-        public override void ReadJournal_query_CurrentEventsByTag_should_complete_when_no_events()
-        {
-        }
+        //[Fact(Skip = "Test work good, but raises an exception")]
+        //public override void ReadJournal_query_CurrentEventsByTag_should_complete_when_no_events()
+        //{
+        //}
+
     }
 }

@@ -46,7 +46,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
     {
         public static Configuration.Config DefaultConfiguration =>
             ConfigurationFactory.FromResource<Linq2DbWriteJournal>(
-                "Akka.Persistence.Sql.Linq2Db.reference.conf");
+                "Akka.Persistence.Sql.Linq2Db.persistence.conf");
         
         private ActorMaterializer _mat;
         private JournalConfig _journalConfig;
@@ -94,6 +94,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             catch (Exception ex)
             {
                 Context.GetLogger().Warning(ex,"Unexpected error initializing journal!");
+                throw;
             }
         }
 
@@ -134,19 +135,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
                 {
                     recoveryCallback(r.repr);
                 }, _mat);
-
-            /*await _journal.MessagesWithBatch(persistenceId, fromSequenceNr,
-                    toSequenceNr, _journalConfig.DaoConfig.ReplayBatchSize,
-                    Option<(TimeSpan, IScheduler)>.None)
-                .Take(max).SelectAsync(1,
-                    t => t.IsSuccess
-                        ? Task.FromResult(t.Success.Value)
-                        : Task.FromException<(IPersistentRepresentation,long)>(
-                            t.Failure.Value))
-                .RunForeach(r =>
-                {
-                    recoveryCallback(r.Item1);
-                }, _mat);*/
+            
         }
 
         public override async Task<long> ReadHighestSequenceNrAsync(string persistenceId, long fromSequenceNr)
@@ -174,7 +163,7 @@ namespace Akka.Persistence.Sql.Linq2Db.Journal
             WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
         {
             //TODO: CurrentTimeMillis;
-            var currentTime = DateTimeHelpers.UnixEpochMillis();
+            var currentTime = DateTime.UtcNow.Ticks;
             var persistenceId = messages.Head().PersistenceId;
             var future = _journal.AsyncWriteMessages(messages,currentTime);
             

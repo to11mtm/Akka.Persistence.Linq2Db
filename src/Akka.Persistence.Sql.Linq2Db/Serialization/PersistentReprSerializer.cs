@@ -32,9 +32,13 @@ namespace Akka.Persistence.Sql.Linq2Db.Serialization
                             $"{aw.PersistenceId} received empty payload for sequenceNr range " +
                             $"{aw.LowestSequenceNr} - {aw.HighestSequenceNr}"));
                 }
+                //Preallocate our list; In the common case
+                //This saves a tiny bit of garbage
                 var retList = new List<T>(payloads.Count);
-                    if (payloads.Count == 1)
+                if (payloads.Count == 1)
                     {
+                        // If there's only one payload
+                        // Don't allocate the enumerable.
                         var ser = Serialize(payloads[0], timeStamp);
                         var opt = ser.Success;
                         if (opt.HasValue)
@@ -46,26 +50,25 @@ namespace Akka.Persistence.Sql.Linq2Db.Serialization
                             return new Util.Try<List<T>>(ser.Failure.Value);
                         }
                     }
-                    else
+                else
+                {
+                    foreach (var p in payloads)
                     {
-                        foreach (var p in payloads)
+                        var ser = Serialize(p, timeStamp);
+                        var opt = ser.Success;
+                        if (opt.HasValue)
                         {
-                            var ser = Serialize(p, timeStamp);
-                            var opt = ser.Success;
-                            if (opt.HasValue)
-                            {
-                                retList.Add(opt.Value);    
-                            }
-                            else
-                            {
-                                return new Util.Try<List<T>>(ser.Failure.Value);
-                            }
-                        }   
+                            retList.Add(opt.Value);
+                        }
+                        else
+                        {
+                            return new Util.Try<List<T>>(ser.Failure.Value);
+                        }
                     }
-                    return new Util.Try<List<T>>(retList);
+                }
 
-                    //.Select(p=> Serialize(p,timeStamp));
-                //return TrySeq.SequenceList(serialized);
+                return new Util.Try<List<T>>(retList);
+                
             }).ToList();
         }
 
