@@ -152,6 +152,16 @@ namespace Akka.Persistence.Sql.Linq2Db.Query.Dao
                 .Any(t => t.Contains(tag)));
         }
 
+        /// <summary>
+        /// This version is Lazy due to the consumption
+        /// nature of Persistent Query Sources
+        /// </summary>
+        /// <param name="dc"></param>
+        /// <param name="persistenceId"></param>
+        /// <param name="fromSequenceNr"></param>
+        /// <param name="toSequenceNr"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
         public override Source<Akka.Util.Try<ReplayCompletion>, NotUsed> Messages(
             DataConnection dc, string persistenceId, long fromSequenceNr,
             long toSequenceNr, long max)
